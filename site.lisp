@@ -1,13 +1,32 @@
-(require 'hunchentoot)
-(require 'cl-ppcre)
-(require 'cl-who)
+(in-package :cl-user)
+
+(require 'asdf)
+(asdf:oos 'asdf:load-op :cl-who)
+(asdf:oos 'asdf:load-op :hunchentoot)
+(asdf:oos 'asdf:load-op :parenscript)
+
+(defpackage tex-serv
+  (:use :cl 
+	:cl-who
+	:hunchentoot
+	:parenscript))
+
+(in-package :tex-serv)
 
 (defmacro with-html (&body body)
   `(with-html-output-to-string (*standard-output* nil :prologue t)
      ,@body))
 
+(defvar *tmp-test-files* nil)
+
 (defvar *tmp-test-directory*
     #p"/tmp/hunchentoot/test/")
+
+(defun clean-tmp-dir ()
+  (loop for (path . nil) in *tmp-test-files*
+        when (probe-file path)
+        do (ignore-errors (delete-file path)))
+  (setq *tmp-test-files* nil))
 
 (let ((counter 0))
   (defun handle-file (post-parameter)
@@ -44,8 +63,7 @@
     (:html
      (:head (:title "Hunchentoot file upload test"))
      (:body
-      (:h2 (hunchentoot-link)
-       " file upload test")
+      (:h2 "TeX file upload test")
       (:form :method :post :enctype "multipart/form-data"
        (:p "First file: "
         (:input :type :file
@@ -73,5 +91,16 @@
                                 (file-length in))))
                        "&nbsp;Bytes"))))))
          (:form :method :post
-          (:p (:input :type :submit :name "clean" :value "Delete uploaded files")))))
-      (menu-link)))))
+          (:p (:input :type :submit :name "clean" :value "Delete uploaded files")))))))))
+
+(setq *dispatch-table*
+      (nconc
+       (list 'dispatch-easy-handlers
+             (create-static-file-dispatcher-and-handler
+              "/favicon.ico"
+              (make-pathname :name "favicon" :type "ico" :version nil
+                             :defaults *this-file*))
+       (mapcar (lambda (args)
+                 (apply 'create-prefix-dispatcher args))
+                 ("/index.html" upload-test))
+       (list 'default-dispatcher)))

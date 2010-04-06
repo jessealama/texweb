@@ -34,7 +34,17 @@
      (:head (:title ,title))
      (:body ,@body)))
 
-(defun test-page ()
+(defmacro define-xml-handler (name (&rest args) &body body)
+  `(defun ,name (,@args)
+     (setf (content-type*) "application/xml+xhtml")
+     ,@body))
+
+(defmacro define-xhtml-handler (name (&rest args) &body body)
+  `(defun ,name (,@args)
+     (setf (content-type*) "text/html")
+     ,@body))
+
+(define-xhtml-handler test-page ()
   (let ((name (parameter "name")))
     (if name
 	(with-title ("Thank you!")
@@ -46,7 +56,8 @@
 		  (:p "Name: " (:input :type "text" :name "name")
 		               (:input :type "submit" :name "submit")))))))
 
-(defun about-page ()
+(define-xhtml-handler about-page ()
+  (setf (content-type*) "application/xml+xhtml")
   (with-title ("Demo")
     (:h1 "Hunchentoot Demo")
     (:p "This is a very simple demonstration of the Hunchentoot webserver.")))

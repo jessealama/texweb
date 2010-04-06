@@ -5,7 +5,7 @@
   (:use :cl
 	:cl-who
 	:hunchentoot)
-  (:export :start :start-server))
+  (:export :start))
 
 (in-package :testserv)
 

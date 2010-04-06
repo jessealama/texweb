@@ -1,3 +1,6 @@
+(dolist (d '(cl-who hunchentoot))
+  (asdf:oos 'asdf:load-op d))
+
 (defpackage :testserv
   (:use :cl
 	:cl-who

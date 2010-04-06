@@ -57,7 +57,6 @@
 		               (:input :type "submit" :name "submit")))))))
 
 (define-xhtml-handler about-page ()
-  (setf (content-type*) "application/xml+xhtml")
   (with-title ("Demo")
     (:h1 "Hunchentoot Demo")
     (:p "This is a very simple demonstration of the Hunchentoot webserver.")))

@@ -1,1 +1,13 @@
 # -*- mode: org; -*-
+* TODO Grok hunchentoot sessions and cookies
+  Why did I think that I could use SESSION-VALUE applied to, say, some
+  nonce keyword like TEXSERV-SESSIONS, to get the 32-bit hex string
+  that hunchentoot generates when making a new session?  It turns out
+  that SESSION-VALUE just gives NIL.  More surprisingly, SESSION-DATA
+  is also NIL, which I suppose explains why (SESSION-VALUE
+  TEXSERV-SESSION) is NIL, too.  I can access the 32-bit string
+  (prefixed by the number of the current session, and a colon) using
+  SESSION-COOKIE-DATA.  I don't understand.  What's the relationship
+  between cookies and hunchentoot sessions?  The latter uses the
+  former, but I'm not sure how.  I think I don't even know what
+  cookies are, to be honest, and that may be the root of the problem.

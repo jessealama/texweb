@@ -1,5 +1,6 @@
 # -*- mode: org; -*-
-* TODO Grok hunchentoot sessions and cookies
+* DONE Grok hunchentoot sessions and cookies
+  CLOSED: [2010-04-13 Tue 14:47]
   Why did I think that I could use SESSION-VALUE applied to, say, some
   nonce keyword like TEXSERV-SESSIONS, to get the 32-bit hex string
   that hunchentoot generates when making a new session?  It turns out
@@ -11,3 +12,35 @@
   between cookies and hunchentoot sessions?  The latter uses the
   former, but I'm not sure how.  I think I don't even know what
   cookies are, to be honest, and that may be the root of the problem.
+
+  Solution: I have turned off URL rewriting, so hunchentoot uses
+  cookies exclusively to maintain sessionstate.  In the HTTP
+  specification, there's no such thing as a cookie name; instead,
+  there is just the value of the cookie field, which is a string of
+  key-value pairs.  When I set the hunchentoot cookie name to, say,
+  "TEXSERV", this doesn't mean that there's some cookie going back and
+  forth between the client and the server whose name is "TEXSERV"; as
+  mentioned earlier, that doesn't make sense, since cookies do not
+  actually have names.  Instead, what it means is that, in the cookie
+  that goes back and forth between the client and the server, there is
+  a designated key, "TEXSERV", whose value is some more-or-less random
+  string.  SESSION-VALUE apparently looks for keys that occur *after*
+  (or, I guess more generally, are *different from*) the "cookie
+  name".  Thus, if the cookie name is "TEXSERV", and no other keys are
+  present in the session, then asking for the value of "TEXSERV"
+  rightly returns NIL, because, apart from the reserved/special
+  "cookie name" TEXSERV, there are no keys.  Conceivably, one can of
+  course access the entire cookie string and get the value of the
+  TEXSERV key.  But the way hunchentoot is set up, one sets and
+  inspects values of keys *other than* the cookie name (TEXSERV).
+* TODO Use smarter error codes
+  405
+  406
+  409
+  411
+  412
+  413
+  503
+  530
+
+  http://en.wikipedia.org/wiki/HTTP_413#4xx_Client_Error

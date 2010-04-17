@@ -12,9 +12,12 @@
 (in-package :texserv)
 
 (setq *dispatch-table*
-      `(,(create-prefix-dispatcher "/main" 'main-page)
+      `(,(create-prefix-dispatcher "/start" 'start-page)
 	,(create-prefix-dispatcher "/about" 'about-page)
-	,(create-prefix-dispatcher "/start" 'start-page)))
+	,(create-prefix-dispatcher "/upload" 'upload-page)
+	,(create-prefix-dispatcher "/compile" 'compile-page)))
+
+;;; Running programs
 
 ;;; Logging
 
@@ -278,19 +281,79 @@ have been already uploaded for the session.")
 (setf *session-removal-hook* #'gc-session)
 (setq *session-gc-frequency* 10)
 
+(defun maybe-parse-integer (str)
+  (if str
+      (parse-integer str)
+      0))
+
+(defmacro uploads-table-checkbox-form (label-text)
+  (let ((session-id (gensym))
+	(uploads (gensym)))
+    `(let* ((,session-id (gethash *session* hunchentoot-sessions->ids))
+	    (,uploads (gethash ,session-id session-uploads)))
+     (htm 
+      (:table
+       (:tr
+	(:th "Filename")
+	(:th ,label-text))
+       (dolist (file ,uploads)
+	 (htm 
+	  (:tr
+	   (:td (fmt "~A" file))
+	   (:td
+	    (:label :for (fmt "~A" file)
+		    ,label-text)
+	    (:input :type "checkbox"
+		    :id (fmt "~A" file)
+		    :name (fmt "~A" file)))))))))))
+
+(defvar upload-empty-file-name-message
+  "The empty string cannot be the name of a file; please try again.")
+(defvar duplicate-file-name-message
+  "You are trying to upload a file whose name is identical to a file
+that you have already uploaded.  It's unclear how to proceed.  Did you
+do this by mistake?  If so, then no action is needed; continue to
+select additional files to upload, or proceed to compilation.  Are you
+trying to upload an updated version of the file you previously
+uploaded?  If so, first delete the old file with this name, then
+try uploading again.")
+(defvar file-too-large-message
+  (concatenate 'string
+	       "The file you uploaded is too large (its size is greater than"
+	       (fmt "~A" max-file-size) "bytes)."))
+
+(defvar too-many-submitted-files-message
+  (concatenate 'string
+	       "You have already submitted" 
+	       (fmt "~A" max-number-of-submitted-files)
+	       "files; submitting  more is not permitted."))
+
+(defvar null-session-id-message 
+  (let (s)
+    (with-html-output-to-string (s)
+      "You are visiting this site without first obtaining a proper cookie.
+Please visit" (:a :href "start" "the start page") "to get one; from
+there you can follow a link to come back here.")))
+
+(defvar verify-session-failure-message
+  "Your session with this site is in a strange state: either you are
+connecting now with a different web browser than the one you started
+this session with, or your IP address now differs from the one you
+started with.  Something is fishy; unable to proceed.")
+
 ;;; Handlers
 ;; /start
-(define-xhtml-handler start-page ()
+(define-xhtml-handler upload-page ()
   ;; check to see if the incoming request is too big
   (let* ((length-str (header-in* :content-length))
-	 (length (parse-integer length-str)))
+	 (length (maybe-parse-integer length-str)))
     (if (> length max-file-size)
 	(with-title ("Too huge")
 	  (:h1 "Joker"))
 	(let ((just-getting-started nil)
-	  (current-session (session-cookie-value *session*))
-	    (handle-result (handle-file (post-parameter "file"))))
-	(let ((uploads (gethash current-session session-uploads)))
+	      (session-id (gethash *session* hunchentoot-sessions->ids))
+	      (handle-result (handle-file (post-parameter "file"))))
+	(let ((uploads (gethash session-id session-uploads)))
 	  (when (or (null uploads)
 		    (zerop (hash-table-count session-uploads))
 		    (null handle-result)) ;; not sure if this disjunction is good
@@ -307,66 +370,58 @@ have been already uploaded for the session.")
 "You didn't submit anything; please try again.")))
 		     (:ok (htm
 "Upload more data?"))
-		     (:empty-file-name (htm
-"The empty string cannot be the name of a file; please try again."))
-		     (:duplicate-filename (htm
-"You are trying to upload a file whose name is identical to a file
-that you have already uploaded.  It's unclear how to proceed.  Did you
-do this by mistake?  If so, then no action is needed; continue to
-select additional files to upload, or proceed to compilation.  Are you
-trying to upload an updated version of the file you previously
-uploaded?  If so, first delete the old file with this name, then
-try uploading again."))
-		     (:file-too-large (htm
-"The file you uploaded is too large (its size is greater than"
-(fmt "~A" max-file-size) "bytes)."))
-                     (:too-many-submitted-files (htm
-"You have already submitted" (fmt "~A" max-number-of-submitted-files)
-"files; submitting  more is not permitted."))
-                     (:null-session-id (htm
-"You are visiting this site without first obtaining a proper cookie.
-Please visit" (:a :href "main" "the main page") "to get one; from
-there you can follow a link to come back here."))
-                     (:verify-session-failure (htm
-"Your session with this site is in a strange state: either you are
-connecting now with a different web browser than the one you started
-this session with, or your IP address now differs from the one you
-started with.  Something is fishy; unable to proceed."))
+		     (:empty-file-name (htm upload-empty-file-name-message))
+		     (:duplicate-filename (htm duplicate-file-name-message))
+		     (:file-too-large (htm file-too-large-message))
+                     (:too-many-submitted-files (htm too-many-submitted-files-message))
+                     (:null-session-id (htm null-session-id-message))
+                     (:verify-session-failure (htm verify-session-failure-message))
                      (otherwise (htm 
 "Uh oh, something is weird.  Received" (fmt "~A" handle-result) "from HANDLE-FILE.")))))
-                   (when (and current-session uploads)
+                   (warn "current-session id: ~A" session-id)
+                   (warn "uploads: ~A" uploads)
+                   (when (and session-id uploads)
                      (htm
                        (:div :class "uploaded"
                          (:form :method "post"
-                                :action "start"
-                        (:table
-                          (dolist (file uploads)
-			    (htm 
-			     (:tr
-			      (:td (fmt "~A" file))
-			      (:td
-			       (:label :for (fmt "~A" file)
-				       "Delete?")
-			       (:input :type "checkbox"
-				       :id (fmt "~A" file)
-				       :name (fmt "~A" file)))))))))))
+                                :action "upload"
+                         (uploads-table-checkbox-form "Delete?"))))))
                  (:div :class "chooser"
                    (:form :method "post"
                           :enctype "multipart/form-data"
-                          :action "start"
+                          :action "upload"
                    (:p "File: "
                      (:input :type "file"
                              :name "file"))
                    (:p (:input :type "submit"))))))))))
 
-;; /main
-(define-xhtml-handler main-page ()
+(defvar max-number-of-sessions 10)
+
+(defun set-next-session-id ()
+  (if (= (1+ current-session-id) max-number-of-sessions)
+      (setf current-session-id 0)
+      (incf current-session-id)))
+
+(defmacro ensure-valid-session (&body body)
+  `(if (session-verify *request*)
+       (progn ,@body)
+       (with-title ("Invalid session")
+	 (:h1 "Error")
+	 (:p
+"Something is wrong with your session.  Make sure that you have not
+disabled cookies in your browser (at least, not for this web site).
+Once you have enabled cookies, you may restart your session by going
+to" (:a :href "start" "the start page") "."))))
+
+;; /start
+(define-xhtml-handler start-page ()
   (unless *session*
     (warn "First time visit -- we are starting a new session")
     (with-lock-held (session-id-lock)
-      (let ((new-session (start-session)))
-	(setf (gethash new-session hunchentoot-sessions->ids) current-session-id
-	      current-session-id (1+ current-session-id)))))
+      (let ((new-session (start-session))
+	    (next-session-id (set-next-session-id)))
+	(setf (gethash new-session hunchentoot-sessions->ids) 
+	      next-session-id))))
   (with-title ("Reinhard's TeX Server")
     (:div :class "nav"
       (:ul
@@ -375,4 +430,55 @@ started with.  Something is fishy; unable to proceed."))
     (:p 
 "Welcome to Reinhard Kahle's TeX dungeon.")
     (:p
-"Let's " (:a :href "start" "get started") ".")))
+"Let's" (:a :href "upload" "get started") ".")))
+
+(defun session-uploads ()
+  (let ((session-id (gethash *session* hunchentoot-sessions->ids)))
+    (gethash session-id session-uploads)))
+
+;; /compile
+(define-xhtml-handler compile-page ()
+  (ensure-valid-session
+   (with-title ("Compile your work")
+     (let ((uploads (session-uploads)))
+       (htm (:h1 "Your uploaded files")
+	    (:div :class "uploaded")
+	    (uploads-as-table)
+	    (:p 
+"If you wish to delete or submit updated versions of these files, go
+to the" (:a :href "upload" "upload page") "." "Otherwise, select the
+files on which you wish to operate, and choose the TeX program that
+should process these files.")
+	    
+	    
+	    
+      
+      
+
+      
+    
+
+;;; Initialization and cleanup
+(defun cleanup-sandboxes ()
+  (when (directory-exists-p sandbox-root)
+    (delete-directory-and-files sandbox-root))
+  (dotimes (i 10)
+    (let* ((i-as-str (format nil "~A" i))
+	   (sandbox-dir (concatenate 'string
+				     sandbox-root "/" i-as-str "/")))
+      (ensure-directories-exist sandbox-dir))))
+
+(defvar current-acceptor nil
+  "The most recently created hunchentoot acceptor object.")
+
+(defun startup (&optional (port 8080))
+  (cleanup-sandboxes)
+  (handler-case (progn
+		  (setf current-acceptor (make-instance 'acceptor :port port))
+		  (values t (start current-acceptor)))
+    (usocket:address-in-use-error () 
+      (values nil (format nil "Port ~A is already taken" port)))))
+
+(defun shutdown ()
+  (stop current-acceptor)
+  (setf current-acceptor nil))

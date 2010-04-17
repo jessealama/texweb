@@ -46,7 +46,7 @@
      (:html :xmlns "http://www.w3.org/1999/xhtml"
 	,@body)))
 
-(defmacro with-title ((title) &body body)
+(defmacro with-title (title &body body)
   `(with-html
      (:head (:title ,title))
      (:body ,@body)))
@@ -63,7 +63,7 @@
 
 ;; /about
 (define-xhtml-handler about-page ()
-  (with-title ("About this service")
+  (with-title "About this service"
     (:h1 "What this service provides")
     (:p
 "With the serivce provided by this site, you can upload your TeX
@@ -349,7 +349,7 @@ started with.  Something is fishy; unable to proceed.")
   (let* ((length-str (header-in* :content-length))
 	 (length (maybe-parse-integer length-str)))
     (if (> length max-file-size)
-	(with-title ("Too huge")
+	(with-title "Too huge"
 	  (:h1 "Joker"))
 	(let ((just-getting-started nil)
 	      (session-id (gethash *session* hunchentoot-sessions->ids))
@@ -359,46 +359,46 @@ started with.  Something is fishy; unable to proceed.")
 		    (zerop (hash-table-count session-uploads))
 		    (null handle-result)) ;; not sure about this disjunction
 	    (setf just-getting-started t))
-	  (with-title ((format nil "Upload TeX data: ~A" handle-result))
+	  (with-title (format nil "Upload TeX data: ~A" handle-result)
 	    (:div :class "messages"
-		  (:p
-		   (case handle-result
-		     (:null-post-parameter 
-		      (if just-getting-started
-			  (htm "Let's get started!")
-			  (htm "Nothing submitted; please try again.")))
-		     (:ok 
-		      (htm "Upload more data?"))
-		     (:empty-file-name 
-		      (htm upload-empty-file-name-message))
-		     (:duplicate-filename 
-		      (htm duplicate-file-name-message))
-		     (:file-too-large 
-		      (htm file-too-large-message))
-                     (:too-many-submitted-files 
-		      (htm too-many-submitted-files-message))
-                     (:null-session-id 
-		      (htm null-session-id-message))
-                     (:verify-session-failure 
-		      (htm verify-session-failure-message))
-                     (otherwise 
-		      (htm  "Uh oh, something is weird.  Received" 
-			    (fmt "~A" handle-result) 
-			    "from HANDLE-FILE.")))))
-                   (when (and session-id uploads)
-                     (htm
-                       (:div :class "uploaded"
-                         (:form :method "post"
-                                :action "upload"
-                         (uploads-table-checkbox-form "Delete?"))))))
-                 (:div :class "chooser"
-                   (:form :method "post"
-                          :enctype "multipart/form-data"
-                          :action "upload"
-                   (:p "File: "
-                     (:input :type "file"
-                             :name "file"))
-                   (:p (:input :type "submit"))))))))))
+	      (:p
+	       (case handle-result
+		 (:null-post-parameter 
+		  (if just-getting-started
+		      (htm "Let's get started!")
+		      (htm "Nothing submitted; please try again.")))
+		 (:ok 
+		  (htm "Upload more data?"))
+		 (:empty-file-name 
+		  (htm upload-empty-file-name-message))
+		 (:duplicate-filename 
+		  (htm duplicate-file-name-message))
+		 (:file-too-large 
+		  (htm file-too-large-message))
+		 (:too-many-submitted-files 
+		  (htm too-many-submitted-files-message))
+		 (:null-session-id 
+		  (htm null-session-id-message))
+		 (:verify-session-failure 
+		  (htm verify-session-failure-message))
+		 (otherwise 
+		  (htm  "Uh oh, something is weird.  Received" 
+			(fmt "~A" handle-result) 
+			"from HANDLE-FILE.")))))
+	    (when (and session-id uploads)
+	      (htm
+	       (:div :class "uploaded"
+		     (:form :method "post"
+			    :action "upload")
+		     (uploads-table-checkbox-form "Delete?"))))
+	    (:div :class "chooser"
+		  (:form :method "post"
+			 :enctype "multipart/form-data"
+			 :action "upload"
+		    (:p "File: "
+			(:input :type "file"
+				:name "file"))
+		    (:p (:input :type "submit"))))))))))
 
 (defvar max-number-of-sessions 10)
 
@@ -410,7 +410,7 @@ started with.  Something is fishy; unable to proceed.")
 (defmacro ensure-valid-session (&body body)
   `(if (session-verify *request*)
        (progn ,@body)
-       (with-title ("Invalid session")
+       (with-title "Invalid session"
 	 (:h1 "Error")
 	 (:p
 "Something is wrong with your session.  Make sure that you have not
@@ -427,7 +427,7 @@ to" (:a :href "start" "the start page") "."))))
 	    (next-session-id (set-next-session-id)))
 	(setf (gethash new-session hunchentoot-sessions->ids) 
 	      next-session-id))))
-  (with-title ("Reinhard's TeX Server")
+  (with-title "Reinhard's TeX Server"
     (:div :class "nav"
       (:ul
        (:li (:a :href "about" "about"))))
@@ -444,24 +444,29 @@ to" (:a :href "start" "the start page") "."))))
 ;; /compile
 (define-xhtml-handler compile-page ()
   (ensure-valid-session
-   (with-title ("Compile your work")
-     (let ((uploads (session-uploads)))
-       (htm (:h1 "Your uploaded files")
-	    (:div :class "uploaded")
-	    (uploads-as-table)
-	    (:p 
+   (let ((uploads (session-uploads)))
+     (if uploads
+	 (with-title "Compile your work"
+	   (:h1 "Your uploaded files")
+	   (:div :class "uploaded"
+	     (uploads-plain-table))
+	   (:p 
 "If you wish to delete or submit updated versions of these files, go
 to the" (:a :href "upload" "upload page") "." "Otherwise, select the
 files on which you wish to operate, and choose the TeX program that
 should process these files.")
-	    
-	    
-	    
-      
-      
+	   (:div :class "tex-and-friends"
+             (choose-tex-and-friends-radio-form "results")))
+	 (with-title "Nothing to compile"
+	   (:p
+"You did not upload anything.  Please go to" (:a :href "upload" "the
+upload page") "to get upload files."))))))
 
-      
-    
+;; /results
+(define-xhtml-handler results-page ()
+  (ensure-valid-session
+   (with-title "Here are your results"
+     (:p "I got nothing."))))
 
 ;;; Initialization and cleanup
 (defun cleanup-sandboxes ()

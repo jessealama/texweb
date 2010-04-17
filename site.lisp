@@ -356,7 +356,7 @@ started with.  Something is fishy; unable to proceed.")
 	(let ((uploads (gethash session-id session-uploads)))
 	  (when (or (null uploads)
 		    (zerop (hash-table-count session-uploads))
-		    (null handle-result)) ;; not sure if this disjunction is good
+		    (null handle-result)) ;; not sure about this disjunction
 	    (setf just-getting-started t))
 	  (with-title ((format nil "Upload TeX data: ~A" handle-result))
 	    (:div :class "messages"
@@ -364,22 +364,26 @@ started with.  Something is fishy; unable to proceed.")
 		   (case handle-result
 		     (:null-post-parameter 
 		      (if just-getting-started
-			  (htm
-"Let's get started!")
-			  (htm
-"You didn't submit anything; please try again.")))
-		     (:ok (htm
-"Upload more data?"))
-		     (:empty-file-name (htm upload-empty-file-name-message))
-		     (:duplicate-filename (htm duplicate-file-name-message))
-		     (:file-too-large (htm file-too-large-message))
-                     (:too-many-submitted-files (htm too-many-submitted-files-message))
-                     (:null-session-id (htm null-session-id-message))
-                     (:verify-session-failure (htm verify-session-failure-message))
-                     (otherwise (htm 
-"Uh oh, something is weird.  Received" (fmt "~A" handle-result) "from HANDLE-FILE.")))))
-                   (warn "current-session id: ~A" session-id)
-                   (warn "uploads: ~A" uploads)
+			  (htm "Let's get started!")
+			  (htm "Nothing submitted; please try again.")))
+		     (:ok 
+		      (htm "Upload more data?"))
+		     (:empty-file-name 
+		      (htm upload-empty-file-name-message))
+		     (:duplicate-filename 
+		      (htm duplicate-file-name-message))
+		     (:file-too-large 
+		      (htm file-too-large-message))
+                     (:too-many-submitted-files 
+		      (htm too-many-submitted-files-message))
+                     (:null-session-id 
+		      (htm null-session-id-message))
+                     (:verify-session-failure 
+		      (htm verify-session-failure-message))
+                     (otherwise 
+		      (htm  "Uh oh, something is weird.  Received" 
+			    (fmt "~A" handle-result) 
+			    "from HANDLE-FILE.")))))
                    (when (and session-id uploads)
                      (htm
                        (:div :class "uploaded"

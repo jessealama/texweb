@@ -13,9 +13,10 @@
 
 (setq *dispatch-table*
       `(,(create-prefix-dispatcher "/start" 'start-page)
-	,(create-prefix-dispatcher "/about" 'about-page)
-	,(create-prefix-dispatcher "/upload" 'upload-page)
-	,(create-prefix-dispatcher "/compile" 'compile-page)))
+	 ,(create-prefix-dispatcher "/about" 'about-page)
+	 ,(create-prefix-dispatcher "/upload" 'upload-page)
+	 ,(create-prefix-dispatcher "/compile" 'compile-page)
+	 ,(create-prefix-dispatcher "/results" 'results-page)))
 
 ;;; Running programs
 

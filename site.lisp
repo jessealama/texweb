@@ -31,7 +31,7 @@
 
 (defmacro with-xml-declaration (&body body)
   `(concatenate 'string
-     "<?xml version='1.0' encoding='UTF-8'?>"
+     "<?xml version='1.1' encoding='UTF-8'?>"
      (format nil "~%")
      *prologue*
      (with-html-output-to-string (*standard-output* nil :indent t)

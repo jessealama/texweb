@@ -247,7 +247,7 @@ have been already uploaded for the session.")
   (declare (ignore acceptor))
   "texserv")
 
-(defvar current-session-id 0)
+(defvar current-session-id -1)
 (defvar session-id-lock (make-lock "texserv"))
 (defvar hunchentoot-sessions->ids (make-hash-table))
 

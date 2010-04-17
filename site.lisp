@@ -265,26 +265,56 @@ have been already uploaded for the session.")
       (parse-integer str)
       0))
 
-(defmacro uploads-table-checkbox-form (label-text)
-  (let ((session-id (gensym))
-	(uploads (gensym)))
+(defmacro with-current-uploads ((uploads-var) &body body)
+  (let ((session-id (gensym)))
     `(let* ((,session-id (gethash *session* hunchentoot-sessions->ids))
-	    (,uploads (gethash ,session-id session-uploads)))
-     (htm 
-      (:table
-       (:tr
-	(:th "Filename")
-	(:th ,label-text))
-       (dolist (file ,uploads)
-	 (htm 
-	  (:tr
-	   (:td (fmt "~A" file))
-	   (:td
-	    (:label :for (fmt "~A" file)
-		    ,label-text)
-	    (:input :type "checkbox"
-		    :id (fmt "~A" file)
-		    :name (fmt "~A" file)))))))))))
+	    (,uploads-var (gethash ,session-id session-uploads)))
+       ,@body)))
+
+(defmacro uploads-table-checkbox-form (label-text)
+  (let ((uploads (gensym)))
+    `(with-current-uploads (,uploads)
+       (htm 
+	(:table
+	 (:tr
+	  (:th "Filename")
+	  (:th ,label-text))
+	 (dolist (file ,uploads)
+	   (htm 
+	    (:tr
+	     (:td (fmt "~A" file))
+	     (:td
+	      (:label :for (fmt "~A" file)
+		      ,label-text)
+	      (:input :type "checkbox"
+		      :id (fmt "~A" file)
+		      :name (fmt "~A" file)))))))))))
+
+(defmacro uploads-plain-table ()
+  (let ((uploads (gensym)))
+    `(with-current-uploads (,uploads)
+       (htm 
+	(:table
+	 (:tr
+	  (:th "Filename"))
+	 (dolist (file ,uploads)
+	   (htm 
+	    (:tr
+	     (:td (fmt "~A" file))))))))))
+
+(defvar tex-and-friends 
+  '("tex" "pdftex" "latex" "pdflatex" "bibtex""context")
+  "TeX and friends")
+
+(defmacro choose-tex-and-friends-radio-form (target)
+  `(:form
+    (dolist (program tex-and-friends)
+      (htm (:input :type "radio"
+		   :name "tex-and-friends"
+		   :value program)))
+    (:input :type "submit"
+	    :action ,target
+	    :name "Compile")))
 
 (defvar upload-empty-file-name-message
   "The empty string cannot be the name of a file; please try again.")
@@ -308,11 +338,9 @@ try uploading again.")
 	       "files; submitting  more is not permitted."))
 
 (defvar null-session-id-message 
-  (let (s)
-    (with-html-output-to-string (s)
-      "You are visiting this site without first obtaining a proper cookie.
-Please visit" (:a :href "start" "the start page") "to get one; from
-there you can follow a link to come back here.")))
+  "You are visiting this site without first obtaining a proper cookie.
+Please visit the start page to get one; from there you can follow a
+link to come back here.")
 
 (defvar verify-session-failure-message
   "Your session with this site is in a strange state: either you are

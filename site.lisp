@@ -34,6 +34,10 @@
 (setf *log-lisp-errors-p* t)
 (setf *log-lisp-backtraces-p* t)
 
+;;; HTML output
+
+(setq *attribute-quote-char* #\")
+
 (defvar sandbox-root "/tmp/texserv"
   "The directory under which uploaded user data is stored.")
 

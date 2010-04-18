@@ -1,5 +1,9 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (dolist (d '(cl-who hunchentoot cl-fad bordeaux-threads))
+  (dolist (d '(cl-who 
+	       hunchentoot 
+	       cl-fad 
+	       bordeaux-threads 
+	       usocket))
     (asdf:oos 'asdf:load-op d)))
 
 (defpackage :texserv
@@ -7,9 +11,12 @@
 	:cl-who
 	:cl-fad
 	:bt
+	:usocket
 	:hunchentoot))
 
 (in-package :texserv)
+
+;;; Hunchentoot configuration
 
 (setq *dispatch-table*
       `(,(create-prefix-dispatcher "/start" 'start-page)

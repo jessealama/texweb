@@ -276,13 +276,13 @@ have been already uploaded for the session.")
       (parse-integer str)
       0))
 
-(defmacro with-current-uploads ((uploads-var) &body body)
+(def-internal-macro with-current-uploads ((uploads-var) &body body)
   (let ((session-id (gensym)))
     `(let* ((,session-id (gethash *session* hunchentoot-sessions->ids))
 	    (,uploads-var (gethash ,session-id session-uploads)))
        ,@body)))
 
-(defmacro uploads-table-checkbox-form (label-text)
+(def-internal-macro uploads-table-checkbox-form (label-text)
   (let ((uploads (gensym)))
     `(with-current-uploads (,uploads)
        (htm 
@@ -301,7 +301,7 @@ have been already uploaded for the session.")
 		      :id (fmt "~A" file)
 		      :name (fmt "~A" file)))))))))))
 
-(defmacro uploads-plain-table ()
+(def-internal-macro uploads-plain-table ()
   (let ((uploads (gensym)))
     `(with-current-uploads (,uploads)
        (htm 
@@ -314,18 +314,21 @@ have been already uploaded for the session.")
 	     (:td (fmt "~A" file))))))))))
 
 (defvar tex-and-friends 
-  '("tex" "pdftex" "latex" "pdflatex" "bibtex""context")
+  '("tex" "pdftex" "latex" "pdflatex" "bibtex" "context")
   "TeX and friends")
 
-(defmacro choose-tex-and-friends-radio-form (target)
-  `(:form
-    (dolist (program tex-and-friends)
-      (htm (:input :type "radio"
-		   :name "tex-and-friends"
-		   :value program)))
-    (:input :type "submit"
-	    :action ,target
-	    :name "Compile")))
+(def-internal-macro choose-tex-and-friends-radio-form (target)
+  `(htm
+    (:form
+     (dolist (program tex-and-friends)
+       (htm 
+	(:label :for program program)
+	(:input :type "radio"
+		:name "tex-and-friends"
+		:id (str program))))
+     (:input :type "submit"
+	     :action (str ,target)
+	     :name "Compile"))))
 
 (defvar upload-empty-file-name-message
   "The empty string cannot be the name of a file; please try again.")
@@ -407,7 +410,10 @@ started with.  Something is fishy; unable to proceed.")
 	       (:div :class "uploaded"
 		     (:form :method "post"
 			    :action "upload")
-		     (uploads-table-checkbox-form "Delete?"))))
+		     (uploads-table-checkbox-form "Delete?"))
+	       (:p
+"If you're done uploading files, you may continue
+to" (:a :href "compile" "the compilation page"))))
 	    (:div :class "chooser"
 		  (:form :method "post"
 			 :enctype "multipart/form-data"
@@ -473,7 +479,18 @@ to the" (:a :href "upload" "upload page") "." "Otherwise, select the
 files on which you wish to operate, and choose the TeX program that
 should process these files.")
 	   (:div :class "tex-and-friends"
-             (choose-tex-and-friends-radio-form "results")))
+	     (:form :action "compile"
+	      (dolist (program tex-and-friends)
+		(htm
+		 (:label :for program (str program))
+		 (:input :type "radio"
+			 :title "Choose your TeX tool"
+			 :name "tex-and-friends"
+			 :id (str program))))
+	      (:input :type "submit"
+		      :action "compile"
+		      :name "Compile"))))
+	   ; (choose-tex-and-friends-radio-form "results")))
 	 (with-title "Nothing to compile"
 	   (:p
 "You did not upload anything.  Please go to" (:a :href "upload" "the

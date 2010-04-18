@@ -175,6 +175,10 @@ of the session, i.e., the values of NAME variables in the session cookies.")
   "A mapping from session names to lists of paths, saying which files
 have been already uploaded for the session.")
 
+(defvar current-session-id -1)
+(defvar session-id-lock (make-lock "texserv"))
+(defvar hunchentoot-sessions->ids (make-hash-table))
+
 (defun handle-file (post-parameter)
   (if post-parameter
       (if (listp post-parameter)
@@ -239,10 +243,6 @@ have been already uploaded for the session.")
 (defmethod session-cookie-name ((acceptor acceptor))
   (declare (ignore acceptor))
   "texserv")
-
-(defvar current-session-id -1)
-(defvar session-id-lock (make-lock "texserv"))
-(defvar hunchentoot-sessions->ids (make-hash-table))
 
 (setq *rewrite-for-session-urls* nil)
 (setq *session-max-time* 3600) ; one hour

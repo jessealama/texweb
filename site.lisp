@@ -64,7 +64,7 @@
 
 (defmacro define-xml-handler (name (&rest args) &body body)
   `(defun ,name (,@args)
-     (setf (content-type*) "application/xml+xhtml")
+     (setf (content-type*) "application/xhtml+xml")
      ,@body))
 
 (defmacro define-xhtml-handler (name (&rest args) &body body)
@@ -73,7 +73,7 @@
      ,@body))
 
 ;; /about
-(define-xhtml-handler about-page ()
+(define-xml-handler about-page ()
   (with-title "About this service"
     (:h1 "What this service provides")
     (:p
@@ -364,7 +364,7 @@ started with.  Something is fishy; unable to proceed.")
 
 ;;; Handlers
 ;; /start
-(define-xhtml-handler upload-page ()
+(define-xml-handler upload-page ()
   ;; check to see if the incoming request is too big
   (let* ((length-str (header-in* :content-length))
 	 (length (maybe-parse-integer length-str)))
@@ -442,7 +442,7 @@ Once you have enabled cookies, you may restart your session by going
 to" (:a :href "start" "the start page") "."))))
 
 ;; /start
-(define-xhtml-handler start-page ()
+(define-xml-handler start-page ()
   (unless *session*
     (warn "First time visit -- we are starting a new session")
     (with-lock-held (session-id-lock)
@@ -465,7 +465,7 @@ to" (:a :href "start" "the start page") "."))))
     (gethash session-id session-uploads)))
 
 ;; /compile
-(define-xhtml-handler compile-page ()
+(define-xml-handler compile-page ()
   (ensure-valid-session
    (let ((uploads (session-uploads)))
      (if uploads
@@ -497,7 +497,7 @@ should process these files.")
 upload page") "to get upload files."))))))
 
 ;; /results
-(define-xhtml-handler results-page ()
+(define-xml-handler results-page ()
   (ensure-valid-session
    (with-title "Here are your results"
      (:p "I got nothing."))))

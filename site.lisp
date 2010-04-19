@@ -463,7 +463,7 @@ to" (:a :href "start" "the start page") "."))))
     (:p 
 "Welcome to Reinhard Kahle's TeX dungeon.")
     (:p
-"Let's" (:a :href "upload" "get started") ".")))
+"Let's " (:a :href "upload" "get started") ".")))
 
 (defun session-uploads ()
   (let ((session-id (gethash *session* hunchentoot-sessions->ids)))

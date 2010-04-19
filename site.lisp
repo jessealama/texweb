@@ -245,7 +245,7 @@ have been already uploaded for the session.")
   "texserv")
 
 (setq *rewrite-for-session-urls* nil)
-(setq *session-max-time* 3600) ; one hour
+(setq *session-max-time* (* 60 60)) ; one hour
 (setq *use-remote-addr-for-sessions* t)
 (setq *use-user-agent-for-sessions* t)
 ; (setf (header-out :server) "web server 0.2") ; don't reveal the name of our web server

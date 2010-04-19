@@ -317,18 +317,23 @@ have been already uploaded for the session.")
   '("tex" "pdftex" "latex" "pdflatex" "bibtex" "context")
   "TeX and friends")
 
+(def-internal-macro tex-or-friend-radio-input (friend)
+  `(htm (:p
+	 (:label :for ,friend (str ,friend))
+	 (:input :type "radio"
+		 :name ,friend
+		 :id ,friend))))
+
 (def-internal-macro choose-tex-and-friends-radio-form (target)
   `(htm
-    (:form
+    (:form :action ,target
+	   :method "post"
      (dolist (program tex-and-friends)
-       (htm 
-	(:label :for program program)
-	(:input :type "radio"
-		:name "tex-and-friends"
-		:id (str program))))
-     (:input :type "submit"
-	     :action (str ,target)
-	     :name "Compile"))))
+       (tex-or-friend-radio-input program))
+     (htm
+      (:p
+       (:input :type "submit"
+	       :name "Compile"))))))
 
 (defvar upload-empty-file-name-message
   "The empty string cannot be the name of a file; please try again.")
@@ -479,18 +484,7 @@ to the" (:a :href "upload" "upload page") "." "Otherwise, select the
 files on which you wish to operate, and choose the TeX program that
 should process these files.")
 	   (:div :class "tex-and-friends"
-	     (:form :action "compile"
-	      (dolist (program tex-and-friends)
-		(htm
-		 (:label :for program (str program))
-		 (:input :type "radio"
-			 :title "Choose your TeX tool"
-			 :name "tex-and-friends"
-			 :id (str program))))
-	      (:input :type "submit"
-		      :action "compile"
-		      :name "Compile"))))
-	   ; (choose-tex-and-friends-radio-form "results")))
+	     (choose-tex-and-friends-radio-form "results")))
 	 (with-title "Nothing to compile"
 	   (:p
 "You did not upload anything.  Please go to" (:a :href "upload" "the

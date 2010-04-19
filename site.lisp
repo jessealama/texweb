@@ -436,15 +436,30 @@ to" (:a :href "compile" "the compilation page"))))
       (incf current-session-id)))
 
 (defmacro ensure-valid-session (&body body)
-  `(if (session-verify *request*)
-       (progn ,@body)
-       (with-title "Invalid session"
-	 (:h1 "Error")
-	 (:p
-"Something is wrong with your session.  Make sure that you have not
-disabled cookies in your browser (at least, not for this web site).
-Once you have enabled cookies, you may restart your session by going
-to" (:a :href "start" "the start page") "."))))
+  `(cond ((session-verify *request*) ,@body)
+	 (t
+	  (setf (return-code*) 409)
+	  (with-title "Invalid session"
+	    (:h1 "Error")
+	    (:p
+"Something is wrong with your session.  There are a few possible reasons:")
+	    (:ul
+	     (:li 
+"Your session is too old.  Did you just now try to refresh the
+previous page more than" (fmt "~A" *session-max-time*) " seconds after
+your last activity with this site?  If so,
+please " (:a :href "start" "start over") " again.  If you uploaded
+files, you'll probably need to upload them again.  Sorry.")
+	     (:li
+"You have disabled cookies in your browser.  Make sure that you have
+not disabled cookies in your browser (at least, not for this web
+site).  Once you have enabled cookies, you may restart your session by
+going to " (:a :href "start" "the start page") ".  If you uploaded any
+files before coming to this error page, you'll probably have to upload
+them again.  Sorry.")
+	     (:li
+"You are trying to crack this web site or are probing this sytem by
+submitting nonsensical cookies.  Jackass."))))))
 
 ;; /start
 (define-xml-handler start-page ()

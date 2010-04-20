@@ -223,58 +223,59 @@ have been already uploaded for the session.")
       (parse-integer str)
       0))
 
-(def-internal-macro with-current-uploads ((uploads-var) &body body)
+(defmacro with-current-uploads ((uploads-var) &body body)
   (let ((session-id (gensym)))
     `(let* ((,session-id (gethash *session* hunchentoot-sessions->ids))
 	    (,uploads-var (gethash ,session-id session-uploads)))
        ,@body)))
 
-(def-internal-macro uploads-table-checkbox-form (label-text)
-  (let ((uploads (gensym)))
-    `(with-current-uploads (,uploads)
-       (htm 
-	(:table
-	 (:tr
-	  (:th "Filename")
-	  (:th ,label-text))
-	 (dolist (file ,uploads)
-	   (htm 
-	    (:tr
-	     (:td (fmt "~A" file))
-	     (:td
-	      (:label :for (fmt "~A" file)
-		      ,label-text)
-	      (:input :type "checkbox"
-		      :id (fmt "~A" file)
-		      :name (fmt "~A" file)))))))))))
+(defun file-with-label-checkbox (file label-text)
+  (htm
+   (:label :for file
+	   label-text)
+   (:input :type "checkbox"
+	   :id file
+	   :name file)))
 
-(def-internal-macro uploads-plain-table ()
-  (let ((uploads (gensym)))
-    `(with-current-uploads (,uploads)
-       (htm 
-	(:table
+(defun uploads-table-checkbox-form (label-text)
+  (with-current-uploads (uploads)
+    (htm 
+     (:table
+      (:tr
+       (:th "Filename")
+       (:th label-text))
+      (dolist (file uploads)
+	(htm 
 	 (:tr
-	  (:th "Filename"))
-	 (dolist (file ,uploads)
-	   (htm 
-	    (:tr
-	     (:td (fmt "~A" file))))))))))
+	  (:td (str file))
+	  (:td (file-with-label-checkbox file label-text)))))))))
+
+(defun uploads-plain-table ()
+  (with-current-uploads (uploads)
+    (htm 
+     (:table
+      (:tr
+       (:th "Filename"))
+      (dolist (file uploads)
+	(htm 
+	 (:tr
+	  (:td (fmt "~A" file)))))))))
 
 (defvar tex-and-friends 
   '("tex" "pdftex" "latex" "pdflatex" "bibtex" "context")
   "TeX and friends")
 
-(def-internal-macro tex-or-friend-radio-input (friend)
-  `(htm (:p
-	 (:label :for ,friend (str ,friend))
-	 (:input :type "radio"
-		 :name ,friend
-		 :id ,friend))))
+(defun tex-or-friend-radio-input (friend)
+  (htm (:p
+	(:label :for friend (str friend))
+	(:input :type "radio"
+		:name friend
+		:id friend))))
 
-(def-internal-macro choose-tex-and-friends-radio-form (target)
-  `(htm
-    (:form :action ,target
-	   :method "post"
+(defun choose-tex-and-friends-radio-form (target)
+  (htm
+   (:form :action target
+	  :method "post"
      (dolist (program tex-and-friends)
        (tex-or-friend-radio-input program))
      (htm

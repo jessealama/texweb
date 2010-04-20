@@ -49,7 +49,7 @@
      "<?xml version='1.1' encoding='UTF-8'?>"
      (format nil "~%")
      *prologue*
-     (with-html-output-to-string (*standard-output* nil :indent t)
+     (with-html-output-to-string (*standard-output* nil)
        ,@body)))
 
 (defmacro with-html (&body body)
@@ -76,84 +76,31 @@
 (define-xml-handler about-page ()
   (with-title "About this service"
     (:h1 "What this service provides")
-    (:p
-"With the serivce provided by this site, you can upload your TeX
-work (TeX, LaTeX, ConTeXt, BibTeX, fonts, hyphenation patterns) to our
-server, compile the finished product, and download the results.")
-    (:p 
-"By default, Portable Document Format (PDF) output is generated.
-Optionally, one can specify PostScript (PS) and Device
-Independent (DVI) output as well.")
+    (:p "With the serivce provided by this site, you can upload your TeX work (TeX, LaTeX, ConTeXt, BibTeX, fonts, hyphenation patterns) to our server, compile the finished product, and download the results.")
+    (:p "By default, Portable Document Format (PDF) output is generated. Optionally, one can specify PostScript (PS) and Device Independent (DVI) output as well.")
     (:h1 "What one needs to use this service")
-    (:p 
-"You need a modern web browser.  This web site adheres the the XHTML
-1.1 document type. Although this document type specification is nearly
-ten years old, support for it might be irregular among older browsers.
-It is known to work with newer versions of Opera, Safari, Firefox,
-Camino, and Chrome.  There are all sorts of browsers with which this
-site works. There is one exception: Internet Explorer version 6 (and
-below). If you are using Internet Explorer, please use version 7 or 8.
-Version 6 of Internet Explorer (and below) is not supported.")
+    (:p "You need a modern web browser.  This web site adheres the the XHTML 1.1 document type. Although this document type specification is nearly ten years old, support for it might be irregular among older browsers. It is known to work with newer versions of Opera, Safari, Firefox, Camino, and Chrome.  There are all sorts of browsers with which this site works. There is one exception: Internet Explorer version 6 (and below). If you are using Internet Explorer, please use version 7 or 8. Version 6 of Internet Explorer (and below) is not supported.")
     (:h1 "How this service works")
     (:h1 "How your uploaded files are stored")
-    (:p
-"Your uploaded work (TeX files, BibTeX files, etc.), and the results
-of compiling your work, will be stored on the server for at most one hour.
-After one hour, your files may be deleted at any time.")
+    (:p "Your uploaded work (TeX files, BibTeX files, etc.), and the results of compiling your work, will be stored on the server for at most one hour. After one hour, your files may be deleted at any time.")
     (:h1 "About security")
-    (:p
-"There are two aspects of security that you should be aware of: your
-own security, and ours.  If you are impatient, here is a summary:")
-    (:p
-(:b "USE THIS TOOL AT YOUR OWN RISK."))
-    (:p 
-"Concerning your security:")
+    (:p "There are two aspects of security that you should be aware of: your own security, and ours.  If you are impatient, here is a summary:")
+    (:p (:b "USE THIS TOOL AT YOUR OWN RISK."))
+    (:p "Concerning your security:")
     (:ul
-     (:li 
-"When uploading your work to this service, your work is not
-encrypted.")
+     (:li "When uploading your work to this service, your work is not encrypted.")
+     (:li "Just as your data is not encrypted during transmission from your machine to our server, your data is stored on our server without encryption.  We intend that different users of this web site are able to access only their own data, but we cannot promise that this is always the case; bugs or errors in TeX and friends, or in the programs that underlie this web site, could conceivably lead to your data being unintentionaly shared with other users whose intentions may not be noble.")
      (:li
-"Just as your data is not encrypted during transmission from your
-machine to our server, your data is stored on our server without
-encryption.  We intend that different users of this web site are able
-to access only their own data, but we cannot promise that this is
-always the case; bugs or errors in TeX and friends, or in the programs
-that underlie this web site, could conceivably lead to your data being
-unintentionaly shared with other users whose intentions may not be
-noble.")
-     (:li
-"Your work resides on our server in an unencrypted form.  Your files
-may thus become accessed and stored by various services running on our
-server, such as automated backup scanners and search databases.  We
-intend to block your data from such tools, but we cannot promise that
-some tool, without our knowledge, would access your data.")
+"Your work resides on our server in an unencrypted form.  Your files may thus become accessed and stored by various services running on our server, such as automated backup scanners and search databases.  We intend to block your data from such tools, but we cannot promise that some tool, without our knowledge, would access your data.")
     (:li
-"If your browser supports it, this site uses cookies.  If your browser
-doesn't support cookies, or if you have disabled support for cookies
-in your browser, this site will work.  But if cookies are enabled,
-our server will know that, and they will be used."))
+"If your browser supports it, this site uses cookies.  If your browser doesn't support cookies, or if you have disabled support for cookies in your browser, this site will work.  But if cookies are enabled, our server will know that, and they will be used."))
     (:p "Concerning our own security:")
     (:ul
-     (:li
-"To prevent abuse of our network resources, we limit the sizes of the
-files that can be uploaded onto our server.  The limit is " (:b "10 MB.")
-"Requests to transmit TeX files or any other file above this size will
-be denied.")
-     (:li
-"To prevent abuse of our storage facilities, we limit the size of the
-files that can be generated.  The limit is " (:b "25 MB.")
-"If a file is generated whose size exceeds 25 MB, compilation will be
-aborted.")
-    (:li
-"You can upload at most" (:b "25") "files.")
-    (:li
-"We store data for at most" (:b "10") "users. If there are ten active
-sessions and a new user comes to this site, the data for the oldest
-session will be deleted."))
-   (:p
-"If you are trying to carry out reasonable TeX work but these
-limitations prevent you from completing your task, please write to us
-and explain your situation.")))
+     (:li "To prevent abuse of our network resources, we limit the sizes of the files that can be uploaded onto our server.  The limit is " (:b "10 MB.") "Requests to transmit TeX files or any other file above this size will be denied.")
+     (:li "To prevent abuse of our storage facilities, we limit the size of the files that can be generated.  The limit is " (:b "25 MB.") "If a file is generated whose size exceeds 25 MB, compilation will be aborted.")
+    (:li "You can upload at most" (:b "25") "files.")
+    (:li "We store data for at most" (:b "10") "users. If there are ten active sessions and a new user comes to this site, the data for the oldest session will be deleted."))
+   (:p "If you are trying to carry out reasonable TeX work but these limitations prevent you from completing your task, please write to us and explain your situation.")))
 
 (defvar sessions (make-hash-table)
   "A table of all the active sessions we are tracking.  Keys are names
@@ -338,13 +285,7 @@ have been already uploaded for the session.")
 (defvar upload-empty-file-name-message
   "The empty string cannot be the name of a file; please try again.")
 (defvar duplicate-file-name-message
-  "You are trying to upload a file whose name is identical to a file
-that you have already uploaded.  It's unclear how to proceed.  Did you
-do this by mistake?  If so, then no action is needed; continue to
-select additional files to upload, or proceed to compilation.  Are you
-trying to upload an updated version of the file you previously
-uploaded?  If so, first delete the old file with this name, then
-try uploading again.")
+  "You are trying to upload a file whose name is identical to a file that you have already uploaded.  It's unclear how to proceed.  Did you do this by mistake?  If so, then no action is needed; continue to select additional files to upload, or proceed to compilation.  Are you trying to upload an updated version of the file you previously uploaded?  If so, first delete the old file with this name, then try uploading again.")
 (defvar file-too-large-message
   (concatenate 'string
 	       "The file you uploaded is too large (its size is greater than"
@@ -357,15 +298,10 @@ try uploading again.")
 	       "files; submitting  more is not permitted."))
 
 (defvar null-session-id-message 
-  "You are visiting this site without first obtaining a proper cookie.
-Please visit the start page to get one; from there you can follow a
-link to come back here.")
+  "You are visiting this site without first obtaining a proper cookie. Please visit the start page to get one; from there you can follow a link to come back here.")
 
 (defvar verify-session-failure-message
-  "Your session with this site is in a strange state: either you are
-connecting now with a different web browser than the one you started
-this session with, or your IP address now differs from the one you
-started with.  Something is fishy; unable to proceed.")
+  "Your session with this site is in a strange state: either you are connecting now with a different web browser than the one you started this session with, or your IP address now differs from the one you started with.  Something is fishy; unable to proceed.")
 
 ;;; Handlers
 ;; /start
@@ -441,25 +377,11 @@ to" (:a :href "compile" "the compilation page"))))
 	  (setf (return-code*) 409)
 	  (with-title "Invalid session"
 	    (:h1 "Error")
-	    (:p
-"Something is wrong with your session.  There are a few possible reasons:")
+	    (:p "Something is wrong with your session.  There are a few possible reasons:")
 	    (:ul
-	     (:li 
-"Your session is too old.  Did you just now try to refresh the
-previous page more than" (fmt "~A" *session-max-time*) " seconds after
-your last activity with this site?  If so,
-please " (:a :href "start" "start over") " again.  If you uploaded
-files, you'll probably need to upload them again.  Sorry.")
-	     (:li
-"You have disabled cookies in your browser.  Make sure that you have
-not disabled cookies in your browser (at least, not for this web
-site).  Once you have enabled cookies, you may restart your session by
-going to " (:a :href "start" "the start page") ".  If you uploaded any
-files before coming to this error page, you'll probably have to upload
-them again.  Sorry.")
-	     (:li
-"You are trying to crack this web site or are probing this sytem by
-submitting nonsensical cookies.  Jackass."))))))
+	     (:li "Your session is too old.  Did you just now try to refresh the previous page more than" (fmt "~A" *session-max-time*) " seconds after your last activity with this site?  If so, please " (:a :href "start" "start over") " again.  If you uploaded files, you'll probably need to upload them again.  Sorry.")
+	     (:li "You have disabled cookies in your browser.  Make sure that you have not disabled cookies in your browser (at least, not for this web site).  Once you have enabled cookies, you may restart your session by going to " (:a :href "start" "the start page") ".  If you uploaded any files before coming to this error page, you'll probably have to upload them again.  Sorry.")
+	     (:li "You are trying to crack this web site or are probing this sytem by submitting nonsensical cookies.  Jackass."))))))
 
 ;; /start
 (define-xml-handler start-page ()
@@ -475,10 +397,8 @@ submitting nonsensical cookies.  Jackass."))))))
       (:ul
        (:li (:a :href "about" "about"))))
     (:h1 "Compile your TeX here")
-    (:p 
-"Welcome to Reinhard Kahle's TeX dungeon.")
-    (:p
-"Let's " (:a :href "upload" "get started") ".")))
+    (:p "Welcome to Reinhard Kahle's TeX dungeon.")
+    (:p "Let's " (:a :href "upload" "get started") ".")))
 
 (defun session-uploads ()
   (let ((session-id (gethash *session* hunchentoot-sessions->ids)))
@@ -493,17 +413,11 @@ submitting nonsensical cookies.  Jackass."))))))
 	   (:h1 "Your uploaded files")
 	   (:div :class "uploaded"
 	     (uploads-plain-table))
-	   (:p 
-"If you wish to delete or submit updated versions of these files, go
-to the" (:a :href "upload" "upload page") "." "Otherwise, select the
-files on which you wish to operate, and choose the TeX program that
-should process these files.")
+	   (:p "If you wish to delete or submit updated versions of these files, go to the" (:a :href "upload" "upload page") "." "Otherwise, select the files on which you wish to operate, and choose the TeX program that should process these files.")
 	   (:div :class "tex-and-friends"
 	     (choose-tex-and-friends-radio-form "results")))
 	 (with-title "Nothing to compile"
-	   (:p
-"You did not upload anything.  Please go to" (:a :href "upload" "the
-upload page") "to get upload files."))))))
+	   (:p "You did not upload anything.  Please go to" (:a :href "upload" "the upload page") "to get upload files."))))))
 
 ;; /results
 (define-xml-handler results-page ()

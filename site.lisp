@@ -308,62 +308,61 @@ have been already uploaded for the session.")
 ;; /start
 (define-xml-handler upload-page ()
   ;; check to see if the incoming request is too big
-  (let* ((length-str (header-in* :content-length))
-	 (length (maybe-parse-integer length-str)))
-    (if (> length max-file-size)
-	(with-title "Too huge"
-	  (:h1 "Joker"))
-	(let ((just-getting-started nil)
-	      (session-id (gethash *session* hunchentoot-sessions->ids))
-	      (handle-result (handle-file (post-parameter "file"))))
-	(let ((uploads (gethash session-id session-uploads)))
-	  (when (or (null uploads)
-		    (zerop (hash-table-count session-uploads))
-		    (null handle-result)) ;; not sure about this disjunction
-	    (setf just-getting-started t))
-	  (with-title (format nil "Upload TeX data: ~A" handle-result)
-	    (:div :class "messages"
-	      (:p
-	       (case handle-result
-		 (:null-post-parameter 
-		  (if just-getting-started
-		      (htm "Let's get started!")
-		      (htm "Nothing submitted; please try again.")))
-		 (:ok 
-		  (htm "Upload more data?"))
-		 (:empty-file-name 
-		  (htm upload-empty-file-name-message))
-		 (:duplicate-filename 
-		  (htm duplicate-file-name-message))
-		 (:file-too-large 
-		  (htm file-too-large-message))
-		 (:too-many-submitted-files 
-		  (htm too-many-submitted-files-message))
-		 (:null-session-id 
-		  (htm null-session-id-message))
-		 (:verify-session-failure 
-		  (htm verify-session-failure-message))
-		 (otherwise 
-		  (htm  "Uh oh, something is weird.  Received" 
-			(fmt "~A" handle-result) 
-			"from HANDLE-FILE.")))))
-	    (when (and session-id uploads)
-	      (htm
-	       (:div :class "uploaded"
-		     (:form :method "post"
-			    :action "upload")
-		     (uploads-table-checkbox-form "Delete?"))
-	       (:p
-"If you're done uploading files, you may continue
-to" (:a :href "compile" "the compilation page"))))
-	    (:div :class "chooser"
-		  (:form :method "post"
-			 :enctype "multipart/form-data"
-			 :action "upload"
-		    (:p "File: "
-			(:input :type "file"
-				:name "file"))
-		    (:p (:input :type "submit"))))))))))
+  (ensure-valid-session
+    (let* ((length-str (header-in* :content-length))
+	   (length (maybe-parse-integer length-str)))
+      (if (> length max-file-size)
+	  (with-title "Too huge"
+	    (:h1 "Joker"))
+	  (let ((just-getting-started nil)
+		(session-id (gethash *session* hunchentoot-sessions->ids))
+		(handle-result (handle-file (post-parameter "file"))))
+	    (let ((uploads (gethash session-id session-uploads)))
+	      (when (or (null uploads)
+			(zerop (hash-table-count session-uploads))
+			(null handle-result)) ;; not sure about this disjunction
+		(setf just-getting-started t))
+	      (with-title "Upload TeX data"
+		(:div :class "messages"
+		  (:p
+		    (case handle-result
+		      (:null-post-parameter 
+		       (if just-getting-started
+			   (htm "Let's get started!")
+			   (htm "Nothing submitted; please try again.")))
+		      (:ok 
+		       (htm "Upload more data?"))
+		      (:empty-file-name 
+		       (htm upload-empty-file-name-message))
+		      (:duplicate-filename 
+		       (htm duplicate-file-name-message))
+		      (:file-too-large 
+		       (htm file-too-large-message))
+		      (:too-many-submitted-files 
+		       (htm too-many-submitted-files-message))
+		      (:null-session-id 
+		       (htm null-session-id-message))
+		      (:verify-session-failure 
+		       (htm verify-session-failure-message))
+		      (otherwise 
+		       (htm  "Uh oh, something is weird.  Received" 
+			     (fmt "~A" handle-result) 
+			     "from HANDLE-FILE.")))))
+		(when (and session-id uploads)
+		  (htm
+		   (:div :class "uploaded"
+			 (:form :method "post"
+				:action "upload")
+			 (uploads-table-checkbox-form "Delete?"))
+		   (:p "If you're done uploading files, you may continue to " (:a :href "compile" "the compilation page") ".")))
+		(:div :class "chooser"
+		      (:form :method "post"
+			     :enctype "multipart/form-data"
+			     :action "upload"
+		      (:p "File: "
+			  (:input :type "file"
+				  :name "file"))
+		      (:p (:input :type "submit")))))))))))
 
 (defvar max-number-of-sessions 10)
 

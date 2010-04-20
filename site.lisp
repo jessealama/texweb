@@ -371,6 +371,8 @@ to" (:a :href "compile" "the compilation page"))))
       (setf current-session-id 0)
       (incf current-session-id)))
 
+(setq *handle-http-errors-p* nil) ; Don't worry -- I got this
+
 (defmacro ensure-valid-session (&body body)
   `(cond ((session-verify *request*) ,@body)
 	 (t

@@ -38,7 +38,7 @@
 
 (setq *attribute-quote-char* #\")
 
-(defvar sandbox-root "/tmp/texserv"
+(defvar sandbox-root "/tmp/texserv/"
   "The directory under which uploaded user data is stored.")
 
 (setq *prologue*

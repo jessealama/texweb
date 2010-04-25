@@ -18,6 +18,8 @@
 
 ;;; Hunchentoot configuration
 
+;; Dispatch table
+
 (setq *dispatch-table*
       `(,(create-prefix-dispatcher "/start" 'start-page)
 	 ,(create-prefix-dispatcher "/about" 'about-page)
@@ -25,24 +27,23 @@
 	 ,(create-prefix-dispatcher "/compile" 'compile-page)
 	 ,(create-prefix-dispatcher "/results" 'results-page)))
 
-;;; Running programs
-
-;;; Logging
+;; Logging
 
 (setf *message-log-pathname* "/tmp/texserv/messages")
 (setf *access-log-pathname* "/tmp/texserv/access")
 (setf *log-lisp-errors-p* t)
 (setf *log-lisp-backtraces-p* t)
 
-;;; HTML output
+;; (X)HTML output
 
 (setq *attribute-quote-char* #\")
+(setq *prologue*
+      "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">")
+
+;;; Running programs
 
 (defvar sandbox-root "/tmp/texserv/"
   "The directory under which uploaded user data is stored.")
-
-(setq *prologue*
-      "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">")
 
 (defmacro with-xml-declaration (&body body)
   `(concatenate 'string

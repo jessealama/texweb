@@ -8,6 +8,7 @@
 
 (defpackage :texserv
   (:use :cl
+	:sb-ext
 	:cl-who
 	:cl-fad
 	:bt
@@ -422,6 +423,51 @@ have been already uploaded for the session.")
 	 (with-title "Nothing to compile"
 	   (:p "You did not upload anything.  Please go to" (:a :href "upload" "the upload page") "to get upload files."))))))
 
+(defvar texlive-binary-base
+  "/usr/local/texlive/2009/bin/universal-darwin"
+  "The directory under which the TeX and friends binaries can be found.  It must end in a directory separator characer (e.g., /)."
+
+(defvar programs-to-paths
+  (pairlis tex-and-friends
+	   (mapcar #'(lambda (friend)
+		       (concatenate 'string 
+				    texlive-binary-base
+				    friend))))
+  "An association list that maps each member of TEX-AND-FRIENDS to
+its corresponding binary.  It must be a full path.")
+
+(defun friend-path (friend)
+  (cdr (assoc friend programs-to-paths)))
+
+(defun compile-submissions-with-friend (session-id friend submission)
+  "Given session ID (a number between 0 and 9), FRIEND (a member of
+TEX-AND-FRIENDS), and filename SUBMISSION, run the program FRIEND
+separately on each element of SUBMISSIONS.  SUBMISSION is to be
+understood relative to the directory associated with SESSION-ID.
+Return T if the results were successful.  Otherwise, return NIL.
+
+Since the function runs a program that, generally, generates output
+files, this function is not side effect-free.  The directory d
+associated with the session id SESSION-ID will almost
+certainly (provided that the program FRIEND is given well-formed
+content in SUBMISSION) cause additional files to be generated in the
+directory d."
+  (if (member friend tex-and-friends)
+      (let ((friend-path (friend-path friend)))
+	(if friend-path
+	    (let ((session-dir (directory-for-session session-id)))
+	      (if (and session-dir
+		       (directory-exists-p session-dir))
+		   (progn
+		     (let ((proc (run-program friend-path
+					      :input nil
+					      :output friend-output-file
+					      :if-output-exists :error
+					      :error friend-error-file
+					      :if-error-exists :error
+					      :environment friend-environment
+					      :wait t)))
+		       
 ;; /results
 (define-xml-handler results-page ()
   (ensure-valid-session

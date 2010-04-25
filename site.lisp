@@ -69,7 +69,7 @@
 
 (defmacro with-title (title &body body)
   `(with-html
-     (:head (:title (str ,title)))
+     (:head (:title ,title))
      (:body ,@body)))
 
 (defmacro define-xml-handler (name (&rest args) &body body)

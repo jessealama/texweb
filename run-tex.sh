@@ -100,26 +100,6 @@ if [[ -u $file_full_path ]]; then
     exit 1;
 fi
 
-# Logfile
-# 
-# Some TeX friends generate their own output file/log, but others do
-# not.  Thus, when called with the former kind of TeX friend,
-# some redundant output is generated.
-
-if [[ -z "$4" ]]; then
-    echo "error: unspecified log file"
-    exit 1;
-fi
-
-logfile="$4"
-logfile_full_path="$workdir/$logfile"
-
-if [[ -e $logfile_full_path ]]; then
-    (rm -Rf $logfile_full_path > /dev/null 2>&1) \
-    || (echo "logfile $logfile already exists, but unable to delete it" \
-	&& exit 1);
-fi
-
 friend_path="$friend_bin_root/$friend"
 
 if [[ ! -e $friend_path ]]; then
@@ -136,8 +116,6 @@ nice $friend_path              \
   -halt-on-error               \
   -no-shell-escape             \
   -output-directory="$workdir" \
-  "$file"                      \
-  < /dev/null                  \
-  > "$logfile" 2>&1;
+  "$file";
 
 exit $?

@@ -8,7 +8,6 @@
 
 (defpackage :texserv
   (:use :cl
-	:sb-ext
 	:cl-who
 	:cl-fad
 	:bt
@@ -16,6 +15,15 @@
 	:hunchentoot))
 
 (in-package :texserv)
+
+(defvar texserv-root "/tmp/texserv/")
+
+(defun append-to-texserv-root (path)
+  (concatenate 'string
+	       texserv-root
+	       path))
+
+(defvar texserv-bin-directory (append-to-texserv-root "bin/"))
 
 ;;; Hunchentoot configuration
 
@@ -30,8 +38,8 @@
 
 ;; Logging
 
-(setf *message-log-pathname* "/tmp/texserv/messages")
-(setf *access-log-pathname* "/tmp/texserv/access")
+(setf *message-log-pathname* (append-to-texserv-root "logs/messages"))
+(setf *access-log-pathname* (append-to-texserv-root "logs/access"))
 (setf *log-lisp-errors-p* t)
 (setf *log-lisp-backtraces-p* t)
 
@@ -43,7 +51,7 @@
 
 ;;; Running programs
 
-(defvar sandbox-root "/tmp/texserv/"
+(defvar sandbox-root (append-to-texserv-root "sessions/")
   "The directory under which uploaded user data is stored.")
 
 (defmacro with-xml-declaration (&body body)
@@ -115,10 +123,11 @@ of the session, i.e., the values of NAME variables in the session cookies.")
   "The size of the largest file we will accept.")
 
 (defun file-size (path)
-  (let ((s (ignore-errors
-	     (with-open-file (in path)
-	       (file-length in)))))
-    (or s -1)))
+  (let ((s (with-open-file (in path :direction :input)
+	     (file-length in))))
+    (if (numberp s)
+	s
+	-1)))
 
 (defvar session-uploads (make-hash-table)
   "A mapping from session names to lists of paths, saying which files
@@ -200,14 +209,13 @@ have been already uploaded for the session.")
 ; (setf (header-out :server) "web server 0.2") ; don't reveal the name of our web server
 
 ;; Garbage collection
+(defun directory-for-session (session-id)
+  (format nil "~A~A/" sandbox-root session-id))
+
 (defun gc-session (session)
   (let ((our-id (gethash session hunchentoot-sessions->ids)))
     (if our-id
-	(let* ((sandbox-dir (pathname-as-directory
-			     (concatenate 'string
-					  sandbox-root
-					  "/"
-					  (format nil "~A" our-id)))))
+	(let* ((sandbox-dir (directory-for-session session)))
 	  (cond ((directory-exists-p sandbox-dir)
 		 (delete-directory-and-files sandbox-dir)
 		 (ensure-directories-exist sandbox-dir))
@@ -307,6 +315,19 @@ have been already uploaded for the session.")
   "Your session with this site is in a strange state: either you are connecting now with a different web browser than the one you started this session with, or your IP address now differs from the one you started with.  Something is fishy; unable to proceed.")
 
 ;;; Handlers
+(defmacro ensure-valid-session (&body body)
+  `(cond ((session-verify *request*) ,@body)
+	 (t
+	  (setf (return-code*) 409)
+	  (with-title "Invalid session"
+	    (:h1 "Error")
+	    (:p "Something is wrong with your session.  There are a few possible reasons:")
+	    (:ul
+	     (:li "Your session is too old.  Did you just now try to refresh the previous page more than" (fmt "~A" *session-max-time*) " seconds after your last activity with this site?  If so, please " (:a :href "start" "start over") " again.  If you uploaded files, you'll probably need to upload them again.  Sorry.")
+	     (:li "You have disabled cookies in your browser.  Make sure that you have not disabled cookies in your browser (at least, not for this web site).  Once you have enabled cookies, you may restart your session by going to " (:a :href "start" "the start page") ".  If you uploaded any files before coming to this error page, you'll probably have to upload them again.  Sorry.")
+	     (:li "You are trying to crack this web site or are probing this sytem by submitting nonsensical cookies.  Jackass."))))))
+
+
 ;; /start
 (define-xml-handler upload-page ()
   ;; check to see if the incoming request is too big
@@ -375,18 +396,6 @@ have been already uploaded for the session.")
 
 (setq *handle-http-errors-p* nil) ; Don't worry -- I got this
 
-(defmacro ensure-valid-session (&body body)
-  `(cond ((session-verify *request*) ,@body)
-	 (t
-	  (setf (return-code*) 409)
-	  (with-title "Invalid session"
-	    (:h1 "Error")
-	    (:p "Something is wrong with your session.  There are a few possible reasons:")
-	    (:ul
-	     (:li "Your session is too old.  Did you just now try to refresh the previous page more than" (fmt "~A" *session-max-time*) " seconds after your last activity with this site?  If so, please " (:a :href "start" "start over") " again.  If you uploaded files, you'll probably need to upload them again.  Sorry.")
-	     (:li "You have disabled cookies in your browser.  Make sure that you have not disabled cookies in your browser (at least, not for this web site).  Once you have enabled cookies, you may restart your session by going to " (:a :href "start" "the start page") ".  If you uploaded any files before coming to this error page, you'll probably have to upload them again.  Sorry.")
-	     (:li "You are trying to crack this web site or are probing this sytem by submitting nonsensical cookies.  Jackass."))))))
-
 ;; /start
 (define-xml-handler start-page ()
   (unless *session*
@@ -424,20 +433,49 @@ have been already uploaded for the session.")
 	   (:p "You did not upload anything.  Please go to" (:a :href "upload" "the upload page") "to get upload files."))))))
 
 (defvar texlive-binary-base
-  "/usr/local/texlive/2009/bin/universal-darwin"
-  "The directory under which the TeX and friends binaries can be found.  It must end in a directory separator characer (e.g., /)."
+  "/usr/local/texlive/2009/bin/universal-darwin/"
+  "The directory under which the TeX and friends binaries can be found.  It must end in a directory separator characer (e.g., /).")
 
 (defvar programs-to-paths
-  (pairlis tex-and-friends
-	   (mapcar #'(lambda (friend)
-		       (concatenate 'string 
-				    texlive-binary-base
-				    friend))))
+  (mapcar #'(lambda (friend)
+	      (cons friend 
+		    (concatenate 'string 
+				 texlive-binary-base
+				 friend)))
+	  tex-and-friends)
   "An association list that maps each member of TEX-AND-FRIENDS to
 its corresponding binary.  It must be a full path.")
 
 (defun friend-path (friend)
-  (cdr (assoc friend programs-to-paths)))
+  (cdr (assoc friend programs-to-paths :test #'string=)))
+
+(defvar run-tex-path "/Users/alama/Sites/tex/run-tex.sh")
+
+(defun current-date-and-time-as-string ()
+  (multiple-value-bind (second minute hour date month year)
+      (decode-universal-time (get-universal-time))
+    (format nil "~4,'0d-~2,'0d-~2,'0d--~2,'0d-~2,'0d-~2,'0d"
+	    year month date hour minute second)))
+
+(defun run-tex (friend work-dir file)
+  "Execute the TeX friend FRIEND in directory WORK-DIR on file FILE.
+FRIEND is a string whose value looks like \"tex\", \"pdflatex\",
+\"bibtex\", etc.  FILE is understood relative to WORK-DIR.  Returns a
+process object."
+  (let ((date-time-str (current-date-and-time-as-string)))
+    (let ((proc (sb-ext:run-program run-tex-path
+				    (list friend work-dir file)
+				    :input nil
+				    :output (format nil "~A~A-output-~A" 
+						    work-dir
+						    friend
+						    date-time-str)
+				    :if-output-exists :supersede
+				    :error :output
+				    :environment nil
+				    :search nil
+				    :wait t)))
+      (zerop (sb-ext:process-exit-code proc)))))
 
 (defun compile-submissions-with-friend (session-id friend submission)
   "Given session ID (a number between 0 and 9), FRIEND (a member of
@@ -450,23 +488,15 @@ Since the function runs a program that, generally, generates output
 files, this function is not side effect-free.  The directory d
 associated with the session id SESSION-ID will almost
 certainly (provided that the program FRIEND is given well-formed
-content in SUBMISSION) cause additional files to be generated in the
-directory d."
-  (if (member friend tex-and-friends)
+content in SUBMISSION) cause contain files after the execution of this
+function as it did beforehand."
+  (if (member friend tex-and-friends :test 'string=)
       (let ((friend-path (friend-path friend)))
 	(if friend-path
 	    (let ((session-dir (directory-for-session session-id)))
 	      (if (and session-dir
 		       (directory-exists-p session-dir))
-		   (progn
-		     (let ((proc (run-program friend-path
-					      :input nil
-					      :output friend-output-file
-					      :if-output-exists :error
-					      :error friend-error-file
-					      :if-error-exists :error
-					      :environment friend-environment
-					      :wait t)))
+		  (run-tex friend session-dir submission)))))))
 		       
 ;; /results
 (define-xml-handler results-page ()

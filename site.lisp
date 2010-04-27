@@ -125,11 +125,10 @@ of the session, i.e., the values of NAME variables in the session cookies.")
   "The size of the largest file we will accept.")
 
 (defun file-size (path)
-  (let ((s (with-open-file (in path :direction :input)
-	     (file-length in))))
-    (if (numberp s)
-	s
-	-1)))
+  (if (file-exists-p path)
+      (let ((stat (sb-posix:stat path)))
+	(sb-posix:stat-size stat))
+      (error "File ~A does not exist" path)))
 
 (defvar session-uploads (make-hash-table)
   "A mapping from session names to lists of paths, saying which files

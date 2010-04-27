@@ -521,7 +521,10 @@ function as it did beforehand."
   (ensure-valid-session
     (with-title "Exit"
       (:p "Thanks for using this service; we hope you were able to accomplish your TeX tasks with it.")
+      (:p "Your uploaded files and generated files have been deleted from the server.")
+      (:p "If you would like to start a new task by uploading and compiling new work, proceed to " (:a :href "start" "the start page") ".")
       (:p "If you would like to comment on the service, submit bug reports or request new features, please write to " (:a :href (fmt "mailto:~A" maintainer-email-address)) ".  We appreciate your feedback."))))
+      
 
 
 ;;; Initialization and cleanup

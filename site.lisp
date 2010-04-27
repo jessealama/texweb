@@ -214,18 +214,24 @@ have been already uploaded for the session.")
 (defun directory-for-session (session-id)
   (format nil "~A~A/" sandbox-root session-id))
 
+(defmacro with-session-directory ((dir-var) &body body)
+  (let ((session-id (gensym)))
+    `(let ((,session-id (gethash *session* hunchentoot-sessions->ids)))
+       (declare (ignorable ,session-id))
+       (if ,session-id
+	   (let ((,dir-var (directory-for-session ,session-id)))
+	     ,@body)
+	   (error "Unable to get the session ID for this session")))))
+
 (defun gc-session (session)
-  (let ((our-id (gethash session hunchentoot-sessions->ids)))
-    (if our-id
-	(let* ((sandbox-dir (directory-for-session session)))
-	  (cond ((directory-exists-p sandbox-dir)
-		 (delete-directory-and-files sandbox-dir)
-		 (ensure-directories-exist sandbox-dir))
-		(t
-		 (error 
-"Error cleaning up session ~A, which has ID ~A and maps to directory ~A:~%the directory does not exist!" session our-id sandbox-dir))))
-	(error
-"The session ~A does not have an ID!" session))))
+  (with-session-directory (sandbox-dir)
+    (cond ((directory-exists-p sandbox-dir)
+	   (delete-directory-and-files sandbox-dir)
+	   (ensure-directories-exist sandbox-dir))
+	  (t
+	   (error 
+"Error cleaning up session ~A, which maps to directory ~A:~%the directory does not exist!" session sandbox-dir)))))
+
 
 (setf *session-removal-hook* #'gc-session)
 (setq *session-gc-frequency* 10)
@@ -481,12 +487,13 @@ process object."
 				    :wait t)))
       (zerop (sb-ext:process-exit-code proc)))))
 
-(defun compile-submissions-with-friend (session-id friend submission)
+(defun compile-submission-with-friend (friend submission)
   "Given session ID (a number between 0 and 9), FRIEND (a member of
 TEX-AND-FRIENDS), and filename SUBMISSION, run the program FRIEND
-separately on each element of SUBMISSIONS.  SUBMISSION is to be
-understood relative to the directory associated with SESSION-ID.
-Return T if the results were successful.  Otherwise, return NIL.
+separately on the file associated with SUBMISSIOn.  SUBMISSION is to
+be understood relative to the directory associated with the current
+session.  Return T if the results were successful.  Otherwise, return
+NIL.
 
 Since the function runs a program that, generally, generates output
 files, this function is not side effect-free.  The directory d
@@ -497,16 +504,14 @@ function as it did beforehand."
   (if (member friend tex-and-friends :test 'string=)
       (let ((friend-path (friend-path friend)))
 	(if friend-path
-	    (let ((session-dir (directory-for-session session-id)))
-	      (if (and session-dir
-		       (directory-exists-p session-dir))
-		  (run-tex friend session-dir submission)))))))
+	    (with-session-directory (session-dir)
+	      (when (and session-dir (directory-exists-p session-dir))
+		(run-tex friend session-dir submission)))))))
 		       
 ;; /results
 (define-xml-handler results-page ()
   (ensure-valid-session
-    (let* ((session-id (gethash *session* hunchentoot-sessions->ids))
-	   (session-dir (directory-for-session session-id)))
+    (with-session-directory (session-dir)
       (with-title "Here are your results"
 	(:div :class "listing"
 	  (:ul :class "listing"

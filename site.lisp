@@ -27,6 +27,8 @@
 
 ;;; Hunchentoot configuration
 
+(defvar maintainer-email-address "jesse.alama@gmail.com")
+
 ;; Dispatch table
 
 (setq *dispatch-table*
@@ -501,8 +503,24 @@ function as it did beforehand."
 ;; /results
 (define-xml-handler results-page ()
   (ensure-valid-session
-   (with-title "Here are your results"
-     (:p "I got nothing."))))
+    (let* ((session-id (gethash *session* hunchentoot-sessions->ids))
+	   (session-dir (directory-for-session session-id)))
+      (with-title "Here are your results"
+	(:div :class "listing"
+	  (:ul :class "listing"
+	    (dolist (file (list-directory session-dir))
+	      (htm (:li (fmt "~A" file))))))
+	(:p "To download your work, simply follow one of the links to the newly generated files.")
+	(:p "If you would like to operate on more files, proceed to " (:a :href "compile" "the compile page") ".  The files that were just generated will be available to you as though you had uploaded them.")
+	(:p "If you are done, proceed to " (:a :href "exit" "the exit"))))))
+
+;; /exit
+(define-xml-handler exit-page ()
+  (ensure-valid-session
+    (with-title "Exit"
+      (:p "Thanks for using this service; we hope you were able to accomplish your TeX tasks with it.")
+      (:p "If you would like to comment on the service, submit bug reports or request new features, please write to " (:a :href (fmt "mailto:~A" maintainer-email-address)) ".  We appreciate your feedback."))))
+
 
 ;;; Initialization and cleanup
 (defun cleanup-sandboxes ()

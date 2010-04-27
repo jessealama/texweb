@@ -511,7 +511,7 @@ function as it did beforehand."
 	(:div :class "listing"
 	  (:ul :class "listing"
 	    (dolist (file (list-directory session-dir))
-	      (htm (:li (fmt "~A" file))))))
+	      (htm (:li (:a :href (esc file) (fmt "~A" file)))))))
 	(:p "To download your work, simply follow one of the links to the newly generated files.")
 	(:p "If you would like to operate on more files, proceed to " (:a :href "compile" "the compile page") ".  The files that were just generated will be available to you as though you had uploaded them.")
 	(:p "If you are done, proceed to " (:a :href "exit" "the exit"))))))

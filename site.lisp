@@ -36,7 +36,8 @@
 	 ,(create-prefix-dispatcher "/about" 'about-page)
 	 ,(create-prefix-dispatcher "/upload" 'upload-page)
 	 ,(create-prefix-dispatcher "/compile" 'compile-page)
-	 ,(create-prefix-dispatcher "/results" 'results-page)))
+	 ,(create-prefix-dispatcher "/results" 'results-page)
+	 ,(create-prefix-dispatcher "/exit" 'exit-page)))
 
 ;; Logging
 

@@ -297,8 +297,10 @@ have been already uploaded for the session.")
 
 (defvar upload-empty-file-name-message
   "The empty string cannot be the name of a file; please try again.")
+
 (defvar duplicate-file-name-message
   "You are trying to upload a file whose name is identical to a file that you have already uploaded.  It's unclear how to proceed.  Did you do this by mistake?  If so, then no action is needed; continue to select additional files to upload, or proceed to compilation.  Are you trying to upload an updated version of the file you previously uploaded?  If so, first delete the old file with this name, then try uploading again.")
+
 (defvar file-too-large-message
   (concatenate 'string
 	       "The file you uploaded is too large (its size is greater than"

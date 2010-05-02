@@ -56,14 +56,6 @@ either return a handler or neglect by returning NIL."
 (defvar sandbox-root (append-to-texserv-root "sessions/")
   "The directory under which uploaded user data is stored.")
 
-;; (defmacro with-xml-declaration (&body body)
-;;   `(concatenate 'string
-;;      "<?xml version='1.1' encoding='UTF-8'?>"
-;;      (format nil "~%")
-;;      *prologue*
-;;      (with-html-output-to-string (*standard-output* nil)
-;;        ,@body)))
-
 (defmacro with-xml-declaration (&body body)
   `(with-html-output-to-string (s)
      "<?xml version='1.1' encoding='UTF-8'?>"

@@ -65,3 +65,32 @@
   530
 
   http://en.wikipedia.org/wiki/HTTP_413#4xx_Client_Error
+* TODO Show a log of the output of running a TeX program
+** 2010/05/02
+   Upon selecting a file on which to operate, and a TeX friend,
+   proceeding to the results page doesn't show the results of
+   compilation.  Did any compilation even take place?
+* TODO Permit downloading a compressed version of the work directory.
+  Formats: gzip, zip, compress, bzip2.  The compression should take
+  place in a restricted environment, like compilation.
+** 2010/05/02
+   Compression can take place in a subdirectory of the texserv root
+   directory, say, sandbox.  What should the directory be called?
+   Perhaps "texserv".  Or, if we would like to use a non-constant
+   name, "texserv-YY-MM-DD-HH-MM-SS" (timestamped name).
+* TODO Use the Last-Modified header when responding to requests for files.
+  The value should be when the file was last modified on the server;
+  it shouldn't just be the time when the request is responded to.
+* TODO Set up some tests.
+** 2010/05/02
+   Use drakma?
+
+   Permit a way of taking a hunchentoot setup and returning all the
+   links that it should respond to, and which it should not respond
+   to.
+* TODO Ensure that we get POST requests, rather than GET requests.
+  That is, ensure that when we expect to get a POST request, that it
+  really is a POST request rather than a GET or a PUT, or whatever.
+* TODO How do we respond to the OPTIONS method?
+* TODO Consider responding to PUT and DELETE.
+* TODO Make this a WebDAV service?

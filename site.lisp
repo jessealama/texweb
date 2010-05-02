@@ -526,20 +526,6 @@ function as it did beforehand."
 				     sandbox-root "/" i-as-str "/")))
       (ensure-directories-exist sandbox-dir))))
 
-(defvar current-acceptor nil
-  "The most recently created hunchentoot acceptor object.")
-
-(defun startup (&optional (port 8080))
-  (cleanup-sandboxes)
-  (handler-case (progn
-		  (setf current-acceptor (make-instance 'acceptor :port port))
-		  (values t (start current-acceptor)))
-    (usocket:address-in-use-error ()
-      (values nil (format nil "Port ~A is already taken" port)))))
-
-(defun shutdown ()
-  (stop current-acceptor)
-  (setf current-acceptor nil))
 (defvar sandbox-handlers nil)
 
 (defun initialize-session-files-handlers ()

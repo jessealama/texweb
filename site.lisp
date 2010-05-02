@@ -533,19 +533,31 @@ function as it did beforehand."
   (mapcar #'file-namestring
 	  (list-directory (directory-for-session session-id))))
 
+(defun fetch-post-parameters (&rest params)
+  (apply #'values
+	 (mapcar #'post-parameter params)))
+
 ;; /results
 (define-xml-handler results-page ()
   (ensure-valid-session
-    (with-title "Here are your results"
-      (:div :class "listing"
-	(:h1 "The current listing of your directory")
-	(:ul :class "listing"
-	  (dolist (file (list-session-directory (session-id)))
-	    (let ((file-uri (format nil "files/~A" file)))
-	      (htm (:li (:a :href file-uri (str file))))))))
-      (:p "To download your work, simply follow one of the links to the newly generated files.")
-      (:p "If you would like to operate on more files, proceed to " (:a :href "compile" "the compile page") ".  The files that were just generated will be available to you as though you had uploaded them.")
-      (:p "If you are done, proceed to " (:a :href "exit" "the exit") "."))))
+    (multiple-value-bind (friend upload)
+	(fetch-post-parameters "friend" "upload")
+      (cond ((and friend upload)
+	     (compile-submission-with-friend friend upload)
+	     (with-title "Here are your results"
+	       (:h1 "The current listing of your directory")
+	       (:ul
+		(dolist (file (list-session-directory (session-id)))
+		  (let ((file-uri (format nil "files/~A" file)))
+		    (htm (:li (:a :href file-uri (str file)))))))
+	       (:p "To download your work, simply follow one of the links to the newly generated files.")
+	       (:p "If you would like to operate on more files, proceed to " (:a :href "compile" "the compile page") ".  The files that were just generated will be available to you as though you had uploaded them.")
+	       (:p "If you would like to get a compressed copy of your work directory, choose the compression format and follow this link.")
+	       (:p "If you are done, proceed to " (:a :href "exit" "the exit") ".  By exiting, you indicate that it is OK to delete your uploaded files and whatever intermediate files were generated during this session.")))
+	    (t
+	     (setf (return-code*) 400)
+	     (with-title "Malformed request"
+	       (:p "Your browser did not send a proper request to the server.  On the compilation page, you must specify both an uploaded file on which to operate, and a TeX program that will compile the specified uploaded file.  Your request omitted one of these pieces of information.  Please return to " (:a :href "compile" "the compile page") " to try again, or proceed to " (:a :href "exit" "the exit page") " to exit this service.  (By exiting, you are indicating that you would like the fies that you uploaded, if any, to be deleted, as well as any files that were generated during this session.)")))))))
 
 ;; /exit
 (define-xml-handler exit-page ()

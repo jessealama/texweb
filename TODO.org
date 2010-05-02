@@ -98,3 +98,11 @@
   Enable it, or disable it?
 * TODO Support HTTPS
   Wouldn't this require me to get a certificate, or use an existing one?
+* TODO Support deleting files
+** 2010/05/02
+   On the upload page, this doesn't work at all.  Should we be using a
+   checkbox, anyway?
+* TODO Support trashing sessions (delete files, invalidate cookies)
+** 2010/05/02
+   Upon going to the exit page, it doesn't appear that files get
+   deleted, nor is the session info (i.e., cookies) deleted.

@@ -134,6 +134,9 @@ of the session, i.e., the values of NAME variables in the session cookies.")
   "A mapping from session names to lists of paths, saying which files
 have been already uploaded for the session.")
 
+(defvar session-handlers (make-hash-table)
+  "A mapping from session IDs to lists of hunchentoot handlers, which serve files that were uploaded (or generated) in a session.")
+
 (defvar current-session-id -1)
 (defvar session-id-lock (make-lock "texserv"))
 (defvar hunchentoot-sessions->ids (make-hash-table))
@@ -182,6 +185,13 @@ whose ID is SESSION-ID?"
 						(cons file-name 
 						      (gethash session-id
 							       session-uploads)))
+					  ;; set up a new handler
+					  (let ((new-handler (create-static-file-dispatcher-and-handler (format nil "/files/~A" file-name)
+													(format nil "~A~A" (directory-for-session session-id)
+														file-name))))
+					    (push new-handler
+						  (gethash session-id
+							   session-handlers)))
 					  (if (null (gethash session-id 
 							     sessions))
 					      (setf (gethash session-id 
@@ -222,13 +232,15 @@ whose ID is SESSION-ID?"
 	   (warn "Unable to get the session ID for this session; not doing anything")))))
 
 (defun gc-session (session)
-  (with-session-directory (sandbox-dir)
-    (cond ((directory-exists-p sandbox-dir)
-	   (delete-directory-and-files sandbox-dir)
-	   (ensure-directories-exist sandbox-dir))
-	  (t
-	   (error 
-"Error cleaning up session ~A, which maps to directory ~A:~%the directory does not exist!" session sandbox-dir)))))
+  (let ((session-id (gethash session hunchentoot-sessions->ids)))
+    (setf (gethash session-id session-handlers) nil)
+    (with-session-directory (sandbox-dir)
+      (cond ((directory-exists-p sandbox-dir)
+	     (delete-directory-and-files sandbox-dir)
+	     (ensure-directories-exist sandbox-dir))
+	    (t
+	     (error 
+	      "Error cleaning up session ~A, which maps to directory ~A:~%the directory does not exist!" session sandbox-dir))))))
 
 
 (setf *session-removal-hook* #'gc-session)

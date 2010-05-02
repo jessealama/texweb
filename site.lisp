@@ -124,6 +124,24 @@ have been already uploaded for the session.")
 (defvar session-id-lock (make-lock "texserv"))
 (defvar hunchentoot-sessions->ids (make-hash-table))
 
+(defun list-longer-than (lst len)
+  (if lst
+      (list-longer-than (cdr lst) (1- len))
+      (< len 0)))
+
+(defun too-many-submitted? (session-id)
+  (list-longer-than (gethash session-id session-uploads)
+		    max-number-of-submitted-files))
+
+(defun already-submitted? (session-id filename)
+  "Has a file called FILENAME already been submitted in the session
+whose ID is SESSION-ID?"
+  (let ((previously-submitted (gethash session-id session-uploads)))
+    (member filename previously-submitted :test #'string=)))
+
+(defun session-id ()
+  (gethash *session* hunchentoot-sessions->ids))
+
 (defun handle-file (post-parameter)
   (if post-parameter
       (if (listp post-parameter)
@@ -131,55 +149,33 @@ have been already uploaded for the session.")
 	      post-parameter
 	    (declare (ignore content-type)) ;; don't know how to use this info
 	    (if (session-verify *request*)
-		(let ((session-id (gethash *session* hunchentoot-sessions->ids)))
-		  (warn "the value of the session id is ~A" session-id)
+		(let ((session-id (session-id)))
 		  (if session-id
-		      (let ((num-already-submitted (gethash session-id
-							    sessions)))
-			(if (or (null num-already-submitted)
-				(< num-already-submitted
-				   max-number-of-submitted-files))
-			    (let ((previously-submitted 
-				   (gethash session-id session-uploads)))
-			      (if (string= file-name "")
-				  :empty-file-name
-				  (if (member file-name 
-					      previously-submitted 
-					      :test #'string=)
-				      :duplicate-filename
-				      (let ((size (file-size path)))
-					(if (and (> size 0)
-						 (< size max-file-size))
-					    (let ((session-root 
-						   (concatenate 'string
-								sandbox-root
-								"/"
-								(format nil "~A" session-id)
-								"/")))
-					      (unless (directory-exists-p session-root)
-						(ensure-directories-exist session-root))
-					      (warn "session root is now ~A" session-root)
-					      (let ((new-path 
-						     (concatenate 'string 
-								  session-root
-								  file-name)))
-						; we need to sanitize this and/or
-					        ; block bad inputs
-						(rename-file path new-path)
-						(setf (gethash session-id 
-							       session-uploads)
-						      (cons file-name 
-							    (gethash session-id
-								     session-uploads)))
-						(if (null (gethash session-id 
-								   sessions))
-						    (setf (gethash session-id 
-								   sessions) 1)
-						    (incf (gethash session-id
-								   sessions)))
-						:ok))
-					    :file-too-large)))))
-		      :too-many-submitted-files))
+		      (if (too-many-submitted? session-id)
+			  :too-many-submitted-files
+			  (if (string= file-name "")
+			      :empty-file-name
+			      (if (already-submitted? session-id file-name)
+				  :duplicate-filename
+				  (let ((size (file-size path)))
+				    (if (< size max-file-size)
+					(let ((new-path (file-in-session-dir session-id file-name)))
+					; we need to sanitize this and/or
+					; block bad inputs
+					  (rename-file path new-path)
+					  (setf (gethash session-id 
+							 session-uploads)
+						(cons file-name 
+						      (gethash session-id
+							       session-uploads)))
+					  (if (null (gethash session-id 
+							     sessions))
+					      (setf (gethash session-id 
+							     sessions) 1)
+					      (incf (gethash session-id
+							     sessions)))
+					  :ok)
+				      :file-too-large)))))
 		      :null-session-id))
 		:verify-session-failure))
 	  post-parameter)

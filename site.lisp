@@ -75,11 +75,13 @@ either return a handler or neglect by returning NIL."
 (defmacro define-xml-handler (name (&rest args) &body body)
   `(defun ,name (,@args)
      (setf (content-type*) "application/xhtml+xml")
+     (setf (header-out :server) nil) ; don't reveal the name of our web server
      ,@body))
 
 (defmacro define-xhtml-handler (name (&rest args) &body body)
   `(defun ,name (,@args)
      (setf (content-type*) "text/html")
+     (setf (header-out :server) nil) ; don't reveal the name of our web server
      ,@body))
 
 ;; /about
@@ -201,7 +203,6 @@ whose ID is SESSION-ID?"
 (setq *session-max-time* (* 60 60)) ; one hour
 (setq *use-remote-addr-for-sessions* t)
 (setq *use-user-agent-for-sessions* t)
-; (setf (header-out :server) "web server 0.2") ; don't reveal the name of our web server
 
 ;; Garbage collection
 (defun directory-for-session (session-id)

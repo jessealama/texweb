@@ -540,3 +540,28 @@ function as it did beforehand."
 (defun shutdown ()
   (stop current-acceptor)
   (setf current-acceptor nil))
+(defvar sandbox-handlers nil)
+
+(defun initialize-session-files-handlers ()
+  (dotimes (i 10 sandbox-handlers)
+    (let ((session-dir (directory-for-session i)))
+      (push (create-folder-dispatcher-and-handler "/files/" session-dir)
+	    sandbox-handlers))))
+
+(defun create-empty-file (path)
+  (if (file-exists-p path)
+      (unless (zerop (file-size path))
+	(error "There's already a file at ~A and it's non-empty!" path))
+      (with-open-file (out path 
+			   :direction :output
+			   :if-does-not-exist :create
+			   :if-exists :supersede) ;; "should never happen"
+	(declare (ignore out)))))
+
+(defun cleanup-logs ()
+  (when (directory-exists-p log-directory-root)
+    (delete-directory-and-files log-directory-root))
+  (ensure-directories-exist log-directory-root)
+  (create-empty-file message-log-pathname)
+  (create-empty-file access-log-pathname))
+

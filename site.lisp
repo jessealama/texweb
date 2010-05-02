@@ -218,7 +218,7 @@ whose ID is SESSION-ID?"
        (if ,session-id
 	   (let ((,dir-var (directory-for-session ,session-id)))
 	     ,@body)
-	   (error "Unable to get the session ID for this session")))))
+	   (warn "Unable to get the session ID for this session; not doing anything")))))
 
 (defun gc-session (session)
   (with-session-directory (sandbox-dir)

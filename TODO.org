@@ -1,0 +1,56 @@
+* TODO A useful response for requests for non-existent resources
+* TODO Dispatchers for generated (and submitted) files
+** 2010/05/02
+   The current approach (2010/05/02) doesn't work, and probably can't
+   be made to work.  According to the current approach, ten folder
+   dispatchers are established, each serving up responses for URIs
+   beginning with "/files/", and varying with what underlying
+   filesystem directory they serve.  This approach doesn't really make
+   sense, now that I think about it some more, because the hunchentoot
+   server does not have a unqiue way to respond to requests like:
+
+   GET /files/file.tex
+  
+   There are, at the moment, 10 different ways to respond to this
+   request!  Should the server respond to this request by serving up
+
+   /tmp/texserv/sessions/0/file.tex
+   
+   or
+   
+   /tmp/texserv/sessions/1/file.tex
+   
+   or
+   
+   /tmp/texserv/sessions/2/file.tex
+   
+   or ... ?
+   
+   (In addition to being a basically flawed approach, I get a 404 when
+   accessing this URL.  I'm either misusing hunchentoot's
+   CREATE-FOLDER-DISPATCHER-AND-HANDLER or have set up an incomplete
+   request dispatcher.  I think the latter is the case.)
+
+   Another reason the current approach is flawed: it is insecure in
+   the sense that it may allow inappropriate access to a session's
+   files.  The dispatcher inspects neither the cookies sent with the
+   request for the file, nor the user agent, nor the IP address from
+   which the request is made.
+
+   (By the way, let me say that I get confused by hunchentoot's
+   distinction between handlers and dispatchers.)
+* TODO Content negotiation
+** 2010/05/02
+   Currently, no content negotiation -- neither agent-driven nor
+   server-driven -- is done.  I force the user to accept my XHTML 1.1
+   representations, without regard for whether those representations
+   are acceptable to the user agent.  (I also force the agent to deal
+   with XML version 1.1.  It is not clear to me how that should vary
+   with the user agent's capabilities: to my knowledge, user agents
+   cannot indicate what kind of XML they can process.  Perhaps the
+   following heuristic would suffice: if the user agent indicates that
+   it can handle application/xhtml+xml, then the server is dealing
+   with a sophisticated user agent and sets the XML version to 1.1;
+   otherwise, the server is dealing with a less sophisitcated user
+   agent, and sets the XML version to 1.0.  I should consult W3 for
+   advice on this matter.)

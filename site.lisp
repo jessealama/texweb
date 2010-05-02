@@ -215,6 +215,10 @@ have been already uploaded for the session.")
 	   (ensure-directories-exist sandbox-dir))
 	  (t
 	   (error 
+(defun file-in-session-dir (session-id filename)
+  (format nil "~A~A" (directory-for-session session-id)
+	             filename))
+
 "Error cleaning up session ~A, which maps to directory ~A:~%the directory does not exist!" session sandbox-dir)))))
 
 

@@ -492,7 +492,11 @@ function as it did beforehand."
 	    (with-session-directory (session-dir)
 	      (when (and session-dir (directory-exists-p session-dir))
 		(run-tex friend session-dir submission)))))))
-		       
+
+(defun list-session-directory (session-id)
+  (mapcar #'file-namestring
+	  (list-directory (directory-for-session session-id))))
+
 ;; /results
 (define-xml-handler results-page ()
   (ensure-valid-session

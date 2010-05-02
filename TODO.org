@@ -54,3 +54,14 @@
    otherwise, the server is dealing with a less sophisitcated user
    agent, and sets the XML version to 1.0.  I should consult W3 for
    advice on this matter.)
+* TODO Use smarter error codes
+  405
+  406
+  409
+  411
+  412
+  413
+  503
+  530
+
+  http://en.wikipedia.org/wiki/HTTP_413#4xx_Client_Error

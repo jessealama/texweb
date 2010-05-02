@@ -284,16 +284,31 @@ whose ID is SESSION-ID?"
 		       :name upload
 		       :id upload))))))
 
+(defun uploads-pulldown-menu ()
+  (with-current-uploads (uploads)
+    (htm 
+     (:select :name "upload"
+	      :size "1"
+       (dolist (upload uploads)
+	 (htm (:option (str upload))))))))
+
 (defvar tex-and-friends 
   '("tex" "pdftex" "latex" "pdflatex" "bibtex" "context")
   "TeX and friends")
 
 (defun tex-or-friend-radio-input (friend)
-  (htm (:p
-	(:label :for friend (str friend))
-	(:input :type "radio"
-		:name friend
-		:id friend))))
+  (htm (:label :for friend (str friend))
+       (:input :type "radio"
+	       :name friend
+	       :id friend)
+       (:br)))
+
+(defun choose-tex-and-friends-pulldown-menu ()
+  (htm
+   (:select :name "friend"
+	    :size "1"
+     (dolist (friend tex-and-friends)
+       (htm (:option (str friend)))))))
 
 (defun choose-tex-and-friends-radio-form (target)
   (htm
@@ -439,11 +454,12 @@ whose ID is SESSION-ID?"
      (if uploads
 	 (with-title "Compile your work"
 	   (:h1 "Your uploaded files")
-	   (:div :class "uploaded"
-	     (uploads-radio-form))
-	   (:p "If you wish to delete or submit updated versions of these files, go to the " (:a :href "upload" "upload page") "." "Otherwise, select the files on which you wish to operate, and choose the TeX program that should process these files.")
-	   (:div :class "tex-and-friends"
-	     (choose-tex-and-friends-radio-form "results")))
+	   (:p "If you wish to delete or submit updated versions of these files, go to the " (:a :href "upload" "upload page") ". Otherwise, select the files on which you wish to operate, and choose the TeX program that should process these files.")
+	   (:form :action "results"
+		  :method "post"
+	     (uploads-pulldown-menu)
+	     (choose-tex-and-friends-pulldown-menu)
+	     (:input :type "submit")))
 	 (with-title "Nothing to compile"
 	   (:p "You did not upload anything.  Please go to" (:a :href "upload" "the upload page") "to get upload files."))))))
 

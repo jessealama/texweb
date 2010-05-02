@@ -534,7 +534,7 @@ function as it did beforehand."
   (handler-case (progn
 		  (setf current-acceptor (make-instance 'acceptor :port port))
 		  (values t (start current-acceptor)))
-    (usocket:address-in-use-error () 
+    (usocket:address-in-use-error ()
       (values nil (format nil "Port ~A is already taken" port)))))
 
 (defun shutdown ()

@@ -94,3 +94,7 @@
 * TODO How do we respond to the OPTIONS method?
 * TODO Consider responding to PUT and DELETE.
 * TODO Make this a WebDAV service?
+* TODO Caching: what to do?
+  Enable it, or disable it?
+* TODO Support HTTPS
+  Wouldn't this require me to get a certificate, or use an existing one?

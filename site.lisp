@@ -284,6 +284,14 @@ have been already uploaded for the session.")
      (htm
       (:p
        (:input :type "submit"
+(defun uploads-radio-form ()
+  (with-current-uploads (uploads)
+    (dolist (upload uploads)
+      (htm (:p (str upload)
+	       (:input :type "radio"
+		       :name upload
+		       :id upload))))))
+
 	       :name "Compile"))))))
 
 (defvar upload-empty-file-name-message
@@ -420,8 +428,8 @@ have been already uploaded for the session.")
 	 (with-title "Compile your work"
 	   (:h1 "Your uploaded files")
 	   (:div :class "uploaded"
-	     (uploads-plain-table))
-	   (:p "If you wish to delete or submit updated versions of these files, go to the" (:a :href "upload" "upload page") "." "Otherwise, select the files on which you wish to operate, and choose the TeX program that should process these files.")
+	     (uploads-radio-form))
+	   (:p "If you wish to delete or submit updated versions of these files, go to the " (:a :href "upload" "upload page") "." "Otherwise, select the files on which you wish to operate, and choose the TeX program that should process these files.")
 	   (:div :class "tex-and-friends"
 	     (choose-tex-and-friends-radio-form "results")))
 	 (with-title "Nothing to compile"

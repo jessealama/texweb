@@ -1,18 +1,3 @@
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (dolist (d '(cl-who 
-	       hunchentoot 
-	       cl-fad 
-	       bordeaux-threads 
-	       usocket))
-    (asdf:oos 'asdf:load-op d)))
-
-(defpackage :texserv
-  (:use :cl
-	:cl-who
-	:cl-fad
-	:bt
-	:usocket
-	:hunchentoot))
 
 (in-package :texserv)
 

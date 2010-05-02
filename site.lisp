@@ -385,20 +385,28 @@ whose ID is SESSION-ID?"
 			   (htm "Let's get started!")
 			   (htm "Nothing submitted; please try again.")))
 		      (:ok
+		       (setf (return-code*) 201)
 		       (htm "Upload more data?"))
 		      (:empty-file-name
+		       (setf (return-code*) 400)
 		       (htm upload-empty-file-name-message))
 		      (:duplicate-filename
+		       (setf (return-code*) 400)
 		       (htm duplicate-file-name-message))
 		      (:file-too-large
+		       (setf (return-code*) 413)
 		       (htm file-too-large-message))
 		      (:too-many-submitted-files
+		       (setf (return-code*) 400)
 		       (htm too-many-submitted-files-message))
 		      (:null-session-id
+		       (setf (return-code*) 400)
 		       (htm null-session-id-message))
 		      (:verify-session-failure
+		       (setf (return-code*) 400)
 		       (htm verify-session-failure-message))
 		      (otherwise 
+		       (setf (return-code*) 400)
 		       (htm  "Uh oh, something is weird.  Received" 
 			     (fmt "~A" handle-result) 
 			     "from HANDLE-FILE.")))))

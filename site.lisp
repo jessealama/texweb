@@ -565,3 +565,23 @@ function as it did beforehand."
   (create-empty-file message-log-pathname)
   (create-empty-file access-log-pathname))
 
+(defvar current-acceptor nil
+  "The most recently created hunchentoot acceptor object.")
+
+(defun startup (&optional (port 8080))
+  (cleanup-sandboxes)
+  (cleanup-logs)
+  (initialize-session-files-handlers)
+  (handler-case (progn
+		  (setf current-acceptor 
+			(make-instance 
+			 'acceptor 
+			 :port port
+			 :request-dispatcher 'texserv-request-dispatcher))
+		  (values t (start current-acceptor)))
+    (usocket:address-in-use-error ()
+      (values nil (format nil "Port ~A is already taken" port)))))
+
+(defun shutdown ()
+  (stop current-acceptor)
+  (setf current-acceptor nil))

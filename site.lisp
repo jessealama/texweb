@@ -215,6 +215,10 @@ whose ID is SESSION-ID?"
 (defun directory-for-session (session-id)
   (format nil "~A~A/" sandbox-root session-id))
 
+(defun file-in-session-dir (session-id filename)
+  (format nil "~A~A" (directory-for-session session-id)
+	             filename))
+
 (defmacro with-session-directory ((dir-var) &body body)
   (let ((session-id (gensym)))
     `(let ((,session-id (gethash *session* hunchentoot-sessions->ids)))
@@ -231,10 +235,6 @@ whose ID is SESSION-ID?"
 	   (ensure-directories-exist sandbox-dir))
 	  (t
 	   (error 
-(defun file-in-session-dir (session-id filename)
-  (format nil "~A~A" (directory-for-session session-id)
-	             filename))
-
 "Error cleaning up session ~A, which maps to directory ~A:~%the directory does not exist!" session sandbox-dir)))))
 
 
@@ -284,6 +284,14 @@ whose ID is SESSION-ID?"
 	 (:tr
 	  (:td (fmt "~A" file)))))))))
 
+(defun uploads-radio-form ()
+  (with-current-uploads (uploads)
+    (dolist (upload uploads)
+      (htm (:p (str upload)
+	       (:input :type "radio"
+		       :name upload
+		       :id upload))))))
+
 (defvar tex-and-friends 
   '("tex" "pdftex" "latex" "pdflatex" "bibtex" "context")
   "TeX and friends")
@@ -304,14 +312,6 @@ whose ID is SESSION-ID?"
      (htm
       (:p
        (:input :type "submit"
-(defun uploads-radio-form ()
-  (with-current-uploads (uploads)
-    (dolist (upload uploads)
-      (htm (:p (str upload)
-	       (:input :type "radio"
-		       :name upload
-		       :id upload))))))
-
 	       :name "Compile"))))))
 
 (defvar upload-empty-file-name-message

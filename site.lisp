@@ -14,21 +14,35 @@
 
 (defvar maintainer-email-address "jesse.alama@gmail.com")
 
-;; Dispatch table
+;; Dispatching
 
-(setq *dispatch-table*
-      `(,(create-prefix-dispatcher "/start" 'start-page)
-	 ,(create-prefix-dispatcher "/about" 'about-page)
-	 ,(create-prefix-dispatcher "/upload" 'upload-page)
-	 ,(create-prefix-dispatcher "/compile" 'compile-page)
-	 ,(create-prefix-dispatcher "/results" 'results-page)
-	 ,(create-prefix-dispatcher "/exit" 'exit-page)))
+(defvar texserv-dispatch-table 
+  `(,(create-prefix-dispatcher "/start" 'start-page)
+     ,(create-prefix-dispatcher "/about" 'about-page)
+     ,(create-prefix-dispatcher "/upload" 'upload-page)
+     ,(create-prefix-dispatcher "/compile" 'compile-page)
+     ,(create-prefix-dispatcher "/results" 'results-page)
+     ,(create-prefix-dispatcher "/exit" 'exit-page)))
+
+(defun texserv-request-dispatcher (request)
+  "The default request dispatcher which selects a request handler
+based on a list of individual request dispatchers all of which can
+either return a handler or neglect by returning NIL."
+  (loop for dispatcher in texserv-dispatch-table
+        for action = (funcall dispatcher request)
+        when action return (funcall action)
+        finally (setf (return-code *reply*) +http-not-found+)))
 
 ;; Logging
 
-(setf *message-log-pathname* (append-to-texserv-root "logs/messages"))
-(setf *access-log-pathname* (append-to-texserv-root "logs/access"))
+(defvar log-directory-root (append-to-texserv-root "logs/"))
+(defvar message-log-pathname (concatenate 'string log-directory-root 
+					          "messages"))
+(defvar access-log-pathname (concatenate 'string log-directory-root "access"))
+(setf *message-log-pathname* message-log-pathname)
+(setf *access-log-pathname* access-log-pathname)
 (setf *log-lisp-errors-p* t)
+(setf *log-lisp-warnings-p* t)
 (setf *log-lisp-backtraces-p* t)
 
 ;; (X)HTML output
@@ -42,13 +56,19 @@
 (defvar sandbox-root (append-to-texserv-root "sessions/")
   "The directory under which uploaded user data is stored.")
 
+;; (defmacro with-xml-declaration (&body body)
+;;   `(concatenate 'string
+;;      "<?xml version='1.1' encoding='UTF-8'?>"
+;;      (format nil "~%")
+;;      *prologue*
+;;      (with-html-output-to-string (*standard-output* nil)
+;;        ,@body)))
+
 (defmacro with-xml-declaration (&body body)
-  `(concatenate 'string
+  `(with-html-output-to-string (s)
      "<?xml version='1.1' encoding='UTF-8'?>"
-     (format nil "~%")
-     *prologue*
-     (with-html-output-to-string (*standard-output* nil)
-       ,@body)))
+     ,*prologue*
+     (htm ,@body)))
 
 (defmacro with-html (&body body)
   `(with-xml-declaration

@@ -367,7 +367,9 @@ whose ID is SESSION-ID?"
 	   (length (maybe-parse-integer length-str)))
       (if (> length max-file-size)
 	  (with-title "Too huge"
-	    (:h1 "Joker"))
+	    (setf (return-code*) 413)
+	    (:h1 "Joker")
+	    (:p "You submitted a file that is too large.  To ensure that this service is not abused, we limit uploaded files to " (fmt "~A" max-file-size) " bytes."))
 	  (let ((just-getting-started nil)
 		(session-id (gethash *session* hunchentoot-sessions->ids))
 		(handle-result (handle-file (post-parameter "file"))))

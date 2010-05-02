@@ -496,15 +496,16 @@ function as it did beforehand."
 ;; /results
 (define-xml-handler results-page ()
   (ensure-valid-session
-    (with-session-directory (session-dir)
-      (with-title "Here are your results"
-	(:div :class "listing"
-	  (:ul :class "listing"
-	    (dolist (file (list-directory session-dir))
-	      (htm (:li (:a :href (esc file) (fmt "~A" file)))))))
-	(:p "To download your work, simply follow one of the links to the newly generated files.")
-	(:p "If you would like to operate on more files, proceed to " (:a :href "compile" "the compile page") ".  The files that were just generated will be available to you as though you had uploaded them.")
-	(:p "If you are done, proceed to " (:a :href "exit" "the exit"))))))
+    (with-title "Here are your results"
+      (:div :class "listing"
+	(:h1 "The current listing of your directory")
+	(:ul :class "listing"
+	  (dolist (file (list-session-directory (session-id)))
+	    (let ((file-uri (format nil "files/~A" file)))
+	      (htm (:li (:a :href file-uri (str file))))))))
+      (:p "To download your work, simply follow one of the links to the newly generated files.")
+      (:p "If you would like to operate on more files, proceed to " (:a :href "compile" "the compile page") ".  The files that were just generated will be available to you as though you had uploaded them.")
+      (:p "If you are done, proceed to " (:a :href "exit" "the exit") "."))))
 
 ;; /exit
 (define-xml-handler exit-page ()

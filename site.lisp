@@ -379,23 +379,23 @@ whose ID is SESSION-ID?"
 		(:div :class "messages"
 		  (:p
 		    (case handle-result
-		      (:null-post-parameter 
+		      (:null-post-parameter
 		       (if just-getting-started
 			   (htm "Let's get started!")
 			   (htm "Nothing submitted; please try again.")))
-		      (:ok 
+		      (:ok
 		       (htm "Upload more data?"))
-		      (:empty-file-name 
+		      (:empty-file-name
 		       (htm upload-empty-file-name-message))
-		      (:duplicate-filename 
+		      (:duplicate-filename
 		       (htm duplicate-file-name-message))
-		      (:file-too-large 
+		      (:file-too-large
 		       (htm file-too-large-message))
-		      (:too-many-submitted-files 
+		      (:too-many-submitted-files
 		       (htm too-many-submitted-files-message))
-		      (:null-session-id 
+		      (:null-session-id
 		       (htm null-session-id-message))
-		      (:verify-session-failure 
+		      (:verify-session-failure
 		       (htm verify-session-failure-message))
 		      (otherwise 
 		       (htm  "Uh oh, something is weird.  Received" 

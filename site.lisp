@@ -472,6 +472,7 @@ whose ID is SESSION-ID?"
 	     (choose-tex-and-friends-pulldown-menu)
 	     (:input :type "submit")))
 	 (with-title "Nothing to compile"
+	   (setf (return-code*) 400)
 	   (:p "You did not upload anything.  Please go to" (:a :href "upload" "the upload page") "to get upload files."))))))
 
 (defvar texlive-binary-base

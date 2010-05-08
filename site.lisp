@@ -604,8 +604,6 @@ function as it did beforehand."
 				     sandbox-root "/" i-as-str "/")))
       (ensure-directories-exist sandbox-dir))))
 
-(defvar sandbox-handlers nil)
-
 (defun create-empty-file (path)
   (if (file-exists-p path)
       (unless (zerop (file-size path))

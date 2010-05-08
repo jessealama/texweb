@@ -22,7 +22,8 @@
      ,(create-prefix-dispatcher "/upload" 'upload-page)
      ,(create-prefix-dispatcher "/compile" 'compile-page)
      ,(create-prefix-dispatcher "/results" 'results-page)
-     ,(create-prefix-dispatcher "/exit" 'exit-page)))
+     ,(create-prefix-dispatcher "/exit" 'exit-page)
+     ,(create-prefix-dispatcher "/files" 'files-handler)))
 
 (defun texserv-request-dispatcher (request)
   "The default request dispatcher which selects a request handler

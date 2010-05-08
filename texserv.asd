@@ -6,6 +6,13 @@
 
 (in-package :texserv-asd)
 
+(defsystem :cl-who-kryukov
+  :version "0.11.1-kryukov"
+  :serial t
+  :components ((:file "cl-who/packages")
+               (:file "cl-who/specials")
+               (:file "cl-who/who")))
+
 (defsystem texserv
   :name "texserv"
   :version "0.1"
@@ -18,8 +25,7 @@
 	       (:file "site" :depends-on ("packages")))
   :depends-on (:cl-fad
 	       :bordeaux-threads
-	       :cl-who
+	       :cl-who-kryukov
 	       :parenscript
 	       :usocket
 	       :hunchentoot))
-  

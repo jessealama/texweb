@@ -348,12 +348,12 @@ whose ID is SESSION-ID?"
 (defvar file-too-large-message
   (concatenate 'string
 	       "The file you uploaded is too large (its size is greater than"
-	       (fmt "~A" max-file-size) "bytes)."))
+	       (format nil "~A" max-file-size) "bytes)."))
 
 (defvar too-many-submitted-files-message
   (concatenate 'string
 	       "You have already submitted" 
-	       (fmt "~A" max-number-of-submitted-files)
+	       (format nil "~A" max-number-of-submitted-files)
 	       "files; submitting  more is not permitted."))
 
 (defvar null-session-id-message 

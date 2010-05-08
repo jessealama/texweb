@@ -606,12 +606,6 @@ function as it did beforehand."
 
 (defvar sandbox-handlers nil)
 
-(defun initialize-session-files-handlers ()
-  (dotimes (i 10 sandbox-handlers)
-    (let ((session-dir (directory-for-session i)))
-      (push (create-folder-dispatcher-and-handler "/files/" session-dir)
-	    sandbox-handlers))))
-
 (defun create-empty-file (path)
   (if (file-exists-p path)
       (unless (zerop (file-size path))
@@ -635,7 +629,6 @@ function as it did beforehand."
 (defun startup (&optional (port 8080))
   (cleanup-sandboxes)
   (cleanup-logs)
-  (initialize-session-files-handlers)
   (handler-case (progn
 		  (setf current-acceptor 
 			(make-instance 

@@ -262,14 +262,6 @@ whose ID is SESSION-ID?"
 	    (,uploads-var (gethash ,session-id session-uploads)))
        ,@body)))
 
-(defun file-with-label-checkbox (file label-text)
-  (htm
-   (:label :for file
-	   label-text)
-   (:input :type "checkbox"
-	   :id file
-	   :name file)))
-
 (defun uploads-table-checkbox-form (label-text)
   (with-current-uploads (uploads)
     (htm 
@@ -281,18 +273,11 @@ whose ID is SESSION-ID?"
 	(htm 
 	 (:tr
 	  (:td (str file))
-	  (:td (file-with-label-checkbox file label-text)))))))))
-
-(defun uploads-plain-table ()
-  (with-current-uploads (uploads)
-    (htm 
-     (:table
-      (:tr
-       (:th "Filename"))
-      (dolist (file uploads)
-	(htm 
-	 (:tr
-	  (:td (fmt "~A" file)))))))))
+	  (:td (:label :for file
+		       label-text)
+	       (:input :type "checkbox"
+		       :id file
+		       :name file)))))))))
 
 (defun uploads-radio-form ()
   (with-current-uploads (uploads)

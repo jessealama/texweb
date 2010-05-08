@@ -22,8 +22,8 @@
      ,(create-prefix-dispatcher "/upload" 'upload-page)
      ,(create-prefix-dispatcher "/compile" 'compile-page)
      ,(create-prefix-dispatcher "/results" 'results-page)
-     ,(create-prefix-dispatcher "/exit" 'exit-page)
-     ,(create-prefix-dispatcher "/files" 'files-handler)))
+     ,(create-prefix-dispatcher "/exit" 'exit-page)))
+
 
 (defun texserv-request-dispatcher (request)
   "The default request dispatcher which selects a request handler
@@ -135,9 +135,6 @@ of the session, i.e., the values of NAME variables in the session cookies.")
   "A mapping from session names to lists of paths, saying which files
 have been already uploaded for the session.")
 
-(defvar session-handlers (make-hash-table)
-  "A mapping from session IDs to lists of hunchentoot handlers, which serve files that were uploaded (or generated) in a session.")
-
 (defvar current-session-id -1)
 (defvar session-id-lock (make-lock "texserv"))
 (defvar hunchentoot-sessions->ids (make-hash-table))
@@ -169,7 +166,12 @@ whose ID is SESSION-ID?"
      (when (null (gethash ,key ,table))      
        (setf (gethash ,key ,table) ,initial-value))
      (incf (gethash ,key ,table))))
-  
+
+(defvar session-handlers (make-hash-table :test #'equalp)
+  "A table mapping pairs (ID . FILENAME) of session IDs (non-negative
+integers) and strings (which are understood as pathnames relative to
+the directory for ID) to a static file dispatchers.")
+
 (defun handle-file (post-parameter)
   (if post-parameter
       (if (listp post-parameter)
@@ -194,13 +196,6 @@ whose ID is SESSION-ID?"
 					  (cons-list-hash-value session-id
 								file-name
 								session-uploads)
-					  ;; set up a new handler
-					  (let ((new-handler (create-static-file-dispatcher-and-handler (format nil "/files/~A" file-name)
-													(format nil "~A~A" (directory-for-session session-id)
-														file-name))))
-					    (push new-handler
-						  (gethash session-id
-							   session-handlers)))
 					  (incf-hash-value session-id
 							   sessions)
 					  :ok)
@@ -236,9 +231,29 @@ whose ID is SESSION-ID?"
 	     ,@body)
 	   (warn "Unable to get the session ID for this session; not doing anything")))))
 
+(defun clear-session-handlers-for-session (session-id)
+  "Set to NIL any static file handlers that were created for SESSION-ID."
+  (let ((files (list-session-directory session-id)))
+    (dolist (file files)
+      (setf (gethash (cons session-id file) session-handlers) nil))))
+
+(defun clear-session-handlers-for-session-in-dispatch-table (session-id)
+  (let (handlers)
+    (maphash #'(lambda (k v)
+		 (let ((session-for-key (car k)))
+		   (when (= session-id session-for-key)
+		     (push v handlers))))
+	     session-handlers)
+    (warn "Here are the handlers we are about to delete: ~A" handlers)
+    (setf texserv-dispatch-table
+	  (remove-if #'(lambda (handler)
+			 (member handler handlers))
+		     texserv-dispatch-table))))
+
 (defun gc-session (session)
   (let ((session-id (gethash session hunchentoot-sessions->ids)))
-    (setf (gethash session-id session-handlers) nil)
+    (clear-session-handlers-for-session-in-dispatch-table session-id)
+    (clear-session-handlers-for-session session-id)
     (with-session-directory (sandbox-dir)
       (cond ((directory-exists-p sandbox-dir)
 	     (delete-directory-and-files sandbox-dir)
@@ -356,7 +371,7 @@ whose ID is SESSION-ID?"
 	    (:h1 "Error")
 	    (:p "Something is wrong with your session.  There are a few possible reasons:")
 	    (:ul
-	     (:li "Your session is too old.  Did you just now try to refresh the previous page more than" (fmt "~A" *session-max-time*) " seconds after your last activity with this site?  If so, please " (:a :href "start" "start over") " again.  If you uploaded files, you'll probably need to upload them again.  Sorry.")
+	     (:li "Your session is too old.  Did you just now try to refresh the previous page more than "  (fmt "~A" *session-max-time*) " seconds after your last activity with this site?  If so, please " (:a :href "start" "start over") " again.  If you uploaded files, you'll probably need to upload them again.  Sorry.")
 	     (:li "You have disabled cookies in your browser.  Make sure that you have not disabled cookies in your browser (at least, not for this web site).  Once you have enabled cookies, you may restart your session by going to " (:a :href "start" "the start page") ".  If you uploaded any files before coming to this error page, you'll probably have to upload them again.  Sorry.")
 	     (:li "You are trying to crack this web site or are probing this sytem by submitting nonsensical cookies.  Jackass."))))))
 
@@ -558,11 +573,19 @@ function as it did beforehand."
 	(fetch-post-parameters "friend" "upload")
       (cond ((and friend upload)
 	     (compile-submission-with-friend friend upload)
+	     (clear-session-handlers-for-session *session*)
+	     (clear-session-handlers-for-session-in-dispatch-table (session-id))
 	     (with-title "Here are your results"
 	       (:h1 "The current listing of your directory")
 	       (:ul
 		(dolist (file (list-session-directory (session-id)))
-		  (let ((file-uri (format nil "files/~A" file)))
+		  (let ((file-uri (format nil "/files/~A" file)))
+		    (let ((handler (create-static-file-dispatcher-and-handler 
+				    file-uri
+				    (file-in-session-dir (session-id) file))))
+		      (setf (gethash (cons (session-id) file) session-handlers)
+			    handler)
+		      (push handler texserv-dispatch-table))
 		    (htm (:li (:a :href file-uri (str file)))))))
 	       (:p "To download your work, simply follow one of the links to the newly generated files.")
 	       (:p "If you would like to operate on more files, proceed to " (:a :href "compile" "the compile page") ".  The files that were just generated will be available to you as though you had uploaded them.")
@@ -576,6 +599,7 @@ function as it did beforehand."
 ;; /exit
 (define-xml-handler exit-page ()
   (ensure-valid-session
+    (gc-session *session*)
     (let ((email-anchor (format nil "mailto:~A" maintainer-email-address)))
       (with-title "Exit"
 	(:p "Thanks for using this service; we hope you were able to accomplish your TeX tasks with it.")

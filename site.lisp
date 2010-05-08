@@ -160,6 +160,16 @@ whose ID is SESSION-ID?"
 (defun session-id ()
   (gethash *session* hunchentoot-sessions->ids))
 
+(defmacro cons-list-hash-value (key item table)
+  `(setf (gethash ,key ,table)
+	 (cons ,item (gethash ,key ,table))))
+
+(defmacro incf-hash-value (key table &optional (initial-value 0))
+  `(progn
+     (when (null (gethash ,key ,table))      
+       (setf (gethash ,key ,table) ,initial-value))
+     (incf (gethash ,key ,table))))
+  
 (defun handle-file (post-parameter)
   (if post-parameter
       (if (listp post-parameter)
@@ -181,11 +191,9 @@ whose ID is SESSION-ID?"
 					; we need to sanitize this and/or
 					; block bad inputs
 					  (rename-file path new-path)
-					  (setf (gethash session-id 
-							 session-uploads)
-						(cons file-name 
-						      (gethash session-id
-							       session-uploads)))
+					  (cons-list-hash-value session-id
+								file-name
+								session-uploads)
 					  ;; set up a new handler
 					  (let ((new-handler (create-static-file-dispatcher-and-handler (format nil "/files/~A" file-name)
 													(format nil "~A~A" (directory-for-session session-id)
@@ -193,12 +201,8 @@ whose ID is SESSION-ID?"
 					    (push new-handler
 						  (gethash session-id
 							   session-handlers)))
-					  (if (null (gethash session-id 
-							     sessions))
-					      (setf (gethash session-id 
-							     sessions) 1)
-					      (incf (gethash session-id
-							     sessions)))
+					  (incf-hash-value session-id
+							   sessions)
 					  :ok)
 				      :file-too-large)))))
 		      :null-session-id))

@@ -454,6 +454,8 @@ the directory for ID) to a static file dispatchers.")
 
 (setq *http-error-handler* #'handle-http-error)
 
+(push +http-created+ *approved-return-codes*)
+
 ;; /start
 (define-xml-handler start-page ()
   (unless *session*

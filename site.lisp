@@ -398,7 +398,7 @@ the directory for ID) to a static file dispatchers.")
 			   (htm "Nothing submitted; please try again.")))
 		      (:ok
 		       (setf (return-code*) 201)
-		       (htm "Upload more data?"))
+		       (htm "Your content was successfully uploaded.  Do you want to upload more data?"))
 		      (:empty-file-name
 		       (setf (return-code*) 400)
 		       (htm upload-empty-file-name-message))

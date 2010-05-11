@@ -30,4 +30,5 @@
 	       :cl-who-kryukov
 	       :parenscript
 	       :usocket
+	       :hunchentoot-utils
 	       :hunchentoot))

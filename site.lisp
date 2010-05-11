@@ -56,34 +56,6 @@ returning NIL."
 (defvar sandbox-root (append-to-texserv-root "sessions/")
   "The directory under which uploaded user data is stored.")
 
-(defmacro with-xml-declaration (&body body)
-  `(with-html-output-to-string (s)
-     "<?xml version='1.1' encoding='UTF-8'?>"
-     ,*prologue*
-     (htm ,@body)))
-
-(defmacro with-html (&body body)
-  `(with-xml-declaration
-     (:html :xmlns "http://www.w3.org/1999/xhtml"
-	,@body)))
-
-(defmacro with-title (title &body body)
-  `(with-html
-     (:head (:title ,title))
-     (:body ,@body)))
-
-(defmacro define-xml-handler (name (&rest args) &body body)
-  `(defun ,name (,@args)
-     (setf (content-type*) "application/xhtml+xml")
-     (setf (header-out :server) nil) ; don't reveal the name of our web server
-     ,@body))
-
-(defmacro define-xhtml-handler (name (&rest args) &body body)
-  `(defun ,name (,@args)
-     (setf (content-type*) "text/html")
-     (setf (header-out :server) nil) ; don't reveal the name of our web server
-     ,@body))
-
 ;; /about
 (define-xml-handler about-page ()
   (with-title "About this service"

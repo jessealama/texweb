@@ -273,19 +273,25 @@ the directory for ID) to a static file dispatchers.")
 (defun uploads-table-checkbox-form (label-text)
   (with-current-uploads (uploads)
     (htm 
-     (:table
-      (:tr
-       (:th "Filename")
-       (:th label-text))
-      (dolist (file uploads)
-	(htm 
-	 (:tr
-	  (:td (str file))
-	  (:td (:label :for file
-		       label-text)
-	       (:input :type "checkbox"
-		       :id file
-		       :name file)))))))))
+     (:form :method "post"
+	    :action "upload"
+       (:table
+	(:tr
+	 (:th "Filename")
+	 (:th label-text))
+	(dolist (file uploads)
+	  (let ((delete-name (format nil "delete-~A" file)))
+	    (htm 
+	     (:tr
+	      (:td (str file))
+	      (:td (:label :for file
+			   label-text)
+		   (:input :type "checkbox"
+			   :name delete-name)))))))
+     ; (:label :for "delete-checked-files" "Delete checked files")
+       (:input :type "submit"
+	       :value "Delete checked files"
+	       :id "delete-checked-files")))))
 
 (defun uploads-radio-form ()
   (with-current-uploads (uploads)
@@ -425,8 +431,6 @@ the directory for ID) to a static file dispatchers.")
 		(when (and session-id uploads)
 		  (htm
 		   (:div :class "uploaded"
-			 (:form :method "post"
-				:action "upload")
 			 (uploads-table-checkbox-form "Delete?"))
 		   (:p "If you're done uploading files, you may continue to " (:a :href "compile" "the compilation page") ".")))
 		(:div :class "chooser"

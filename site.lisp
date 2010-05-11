@@ -209,7 +209,7 @@ the directory for ID) to a static file dispatchers.")
   (declare (ignore acceptor))
   "texserv")
 
-(setq *rewrite-for-session-urls* nil)
+(setq *rewrite-for-session-urls* nil) ; we will use cookies, thanks
 (setq *session-max-time* (* 60 60)) ; one hour
 (setq *use-remote-addr-for-sessions* t)
 (setq *use-user-agent-for-sessions* t)

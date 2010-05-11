@@ -1,8 +1,10 @@
 
 (in-package :cl-user)
 
-(defpackage :texserv-asd
-  (:use :cl :asdf))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (unless (find-package :texserv-asd)
+    (defpackage :texserv-asd
+      (:use :cl :asdf))))
 
 (in-package :texserv-asd)
 

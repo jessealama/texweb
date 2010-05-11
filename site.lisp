@@ -31,14 +31,7 @@ returning NIL."
   (loop for dispatcher in texserv-dispatch-table
         for action = (funcall dispatcher request)
         when action return (funcall action)
-        ; finally (funcall 'not-found-page)))
         finally (setf (return-code *reply*) +http-not-found+)))
-
-(define-xml-handler not-found-page ()
-  (setf (return-code *reply*) +http-not-found+)
-  (with-title "No"
-    (:p "jackass")))
-                
 
 ;; Logging
 
@@ -452,7 +445,14 @@ the directory for ID) to a static file dispatchers.")
       (setf current-session-id 0)
       (incf current-session-id)))
 
-(setq *handle-http-errors-p* nil) ; Don't worry -- I got this
+(setq *handle-http-errors-p* t) ; Don't worry -- I got this
+
+(defun handle-http-error (error-code)
+  (when (= error-code +http-not-found+)
+    (with-title "No"
+      (:p "I still haven't found what you're looking for."))))
+
+(setq *http-error-handler* #'handle-http-error)
 
 ;; /start
 (define-xml-handler start-page ()

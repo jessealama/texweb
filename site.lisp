@@ -24,15 +24,21 @@
      ,(create-prefix-dispatcher "/results" 'results-page)
      ,(create-prefix-dispatcher "/exit" 'exit-page)))
 
-
 (defun texserv-request-dispatcher (request)
-  "The default request dispatcher which selects a request handler
-based on a list of individual request dispatchers all of which can
-either return a handler or neglect by returning NIL."
+  "Selects a request handler based on a list of individual request
+dispatchers all of which can either return a handler or neglect by
+returning NIL."
   (loop for dispatcher in texserv-dispatch-table
         for action = (funcall dispatcher request)
         when action return (funcall action)
+        ; finally (funcall 'not-found-page)))
         finally (setf (return-code *reply*) +http-not-found+)))
+
+(define-xml-handler not-found-page ()
+  (setf (return-code *reply*) +http-not-found+)
+  (with-title "No"
+    (:p "jackass")))
+                
 
 ;; Logging
 

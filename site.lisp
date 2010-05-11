@@ -582,7 +582,7 @@ function as it did beforehand."
 		      (push handler texserv-dispatch-table))
 		    (htm (:li (:a :href file-uri (str file)))))))
 	       (:p "To download your work, simply follow one of the links to the newly generated files.")
-	       (:p "If you would like to operate on more files, proceed to " (:a :href "compile" "the compile page") ".  The files that were just generated will be available to you as though you had uploaded them.")
+	       (:p "If you would like to operate on more files, proceed to " (:a :href "compile" "the compile page") ".  The files that were just now generated, if any, will be available to you as though you had uploaded them.")
 	       (:p "If you would like to get a compressed copy of your work directory, choose the compression format and follow this link.")
 	       (:p "If you are done, proceed to " (:a :href "exit" "the exit") ".  By exiting, you indicate that it is OK to delete your uploaded files and whatever intermediate files were generated during this session.")))
 	    (t

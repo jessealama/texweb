@@ -242,7 +242,7 @@ the directory for ID) to a static file dispatchers.")
 	       (let ((session-for-key (car k)))
 		 (when (= session-id session-for-key)
 		   (delete v texserv-dispatch-table))))
-	   session-handlers)
+	   session-handlers))
 
 (defun gc-session (session)
   (let ((session-id (gethash session hunchentoot-sessions->ids)))

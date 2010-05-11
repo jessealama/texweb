@@ -594,12 +594,16 @@ function as it did beforehand."
 (define-xml-handler exit-page ()
   (ensure-valid-session
     (gc-session *session*)
-    (let ((email-anchor (format nil "mailto:~A" maintainer-email-address)))
-      (with-title "Exit"
-	(:p "Thanks for using this service; we hope you were able to accomplish your TeX tasks with it.")
-	(:p "Your uploaded files and generated files have been deleted from the server.")
-	(:p "If you would like to start a new task by uploading and compiling new work, proceed to " (:a :href "start" "the start page") ".")
-	(:p "If you would like to comment on the service, submit bug reports or request new features, please write to " (:a :href email-anchor (str maintainer-email-address)) ".  We appreciate your feedback.")))))
+    (remove-session *session*)
+    (let ((session-id (gethash *session* hunchentoot-sessions->ids)))
+      (setf (gethash *session* hunchentoot-sessions->ids) nil)
+      (setf (gethash session-id session-uploads) nil)
+      (let ((email-anchor (format nil "mailto:~A" maintainer-email-address)))
+	(with-title "Exit"
+	  (:p "Thanks for using this service; we hope you were able to accomplish your TeX tasks with it.")
+	  (:p "The files that you uploaded have been deleted from our server, as well as any files that were generated during your session.  Behind the scenes, we used HTTP cookies to keep track of your session; those cookies have now been discarded.")
+	  (:p "If you would like to start a new task by uploading and compiling new work, proceed to " (:a :href "start" "the start page") ".")
+	  (:p "If you would like to comment on the service, submit bug reports or request new features, please write to " (:a :href email-anchor (str maintainer-email-address)) ".  We appreciate your feedback."))))))
 
 ;;; Initialization and cleanup
 (defun cleanup-sandboxes ()
